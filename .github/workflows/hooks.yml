@@ -1,0 +1,27 @@
+name: Hook tests
+
+# Runs the secrets-protection hook test suite on any change to the hooks (or to
+# this workflow). The hooks are the mechanical half of the repo's security
+# posture; this gate keeps them from regressing. Stdlib only — no dependencies.
+
+on:
+  pull_request:
+    paths:
+      - ".claude/hooks/**"
+      - ".github/workflows/hooks.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".claude/hooks/**"
+      - ".github/workflows/hooks.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run hook tests
+        run: python3 .claude/hooks/tests/test_hooks.py

@@ -3,8 +3,37 @@
 Thumbs.db
 *~
 .*.swp
+.vscode/
+.idea/
 
 # Python (scan/validation tooling run locally)
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Raw session data — defense in depth on top of the contribution policy.
+# Only sanitized full sessions (corpus/) or content-free structural profiles
+# (structural/) are ever committed. Any file matching these patterns must NOT
+# be committed.
+*.raw.jsonl
+_quarantine/
+_incoming/
+
+# Sanitizer config (the `.ccs-sanitize.yaml` rule file), if a contributor runs
+# the upstream sanitizer from this checkout. A live config holds the LITERAL
+# strings to scrub — real home dir, email, name, GitHub handle. Committing it
+# would leak the very PII the sanitizer removes. The PII-free
+# `.ccs-sanitize.example.yaml` schema reference is safe to commit.
+.ccs-sanitize.yaml
+
+# Claude Code settings (local-only; committed settings.json carries the shared
+# hook wiring, settings.local.json carries personal permissions/overrides).
+.claude/settings.local.json
+
+# Local-only scratch
+*.local
+local/
