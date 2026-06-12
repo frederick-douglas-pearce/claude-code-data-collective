@@ -62,6 +62,16 @@ description of the data this corpus contains:
 - **Format reference** — the [`reference/`](https://github.com/frederick-douglas-pearce/claude-code-sessions/tree/main/reference)
   docs are the authoritative description of the Claude Code JSONL session format.
 
+## Design & rationale
+
+The "why" behind CCDC's shape — the two-tier model, the decisions locked before the first
+contributor, the trust asymmetry, and the build sequence — lives in `docs/`:
+
+- **[`docs/prd-ccdc.md`](docs/prd-ccdc.md)** — the v0 product requirements: goals, the two
+  contribution tiers, decisions-to-lock, dependency graph, and ship gate.
+- **[`docs/roadmap-ccdc.md`](docs/roadmap-ccdc.md)** — the now / next / then sequencing view:
+  where to start and what's blocked by what.
+
 ## Contributing
 
 **Not yet open.** The end-to-end contribution path, governance doc, license, contributor
