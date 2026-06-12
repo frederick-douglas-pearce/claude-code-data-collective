@@ -67,6 +67,9 @@ structural/<contributor_id>/<scan_id>/
   weaker gate than Tier 1's that is accepted because the output is zero-leak regardless of
   trust.
 
+See [`structural/README.md`](structural/README.md) for the `scan.json` artifact format, the
+structural-only-for-v0 scope, and why no PII-takedown obligation attaches to this tier.
+
 ## Manifest
 
 `manifest.jsonl` at the repository root is the corpus **index** — one JSON object per line,
@@ -92,6 +95,9 @@ Deferred on purpose, to avoid premature lock-in:
 - The **manifest field schema** and the per-contribution metadata file's **name and fields**
   — locked with the manifest-schema work.
 - The **CI gate mechanism** — how the `corpus/**` and `structural/**` path globs map to jobs,
-  and the re-scan implementation itself — locked with the CI-gate work.
+  and the re-scan implementation itself — locked with the CI-gate work. Note for that work:
+  the `structural/**` glob must target the `<contributor_id>/<scan_id>/` contribution depth
+  (or explicitly exclude `structural/README.md`), so the tier doc is never mistaken for a
+  contribution.
 - **`<contributor_id>` assignment** and the end-to-end contribution path — locked with the
   contribution-path work.
