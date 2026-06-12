@@ -11,8 +11,10 @@ here and is locked separately before the corpus opens.
 corpus/         # Tier 1 — full sanitized session JSONL (CI re-scans every file)
 structural/     # Tier 2 — content-free structural profiles (version-attested, not re-scanned)
 manifest.jsonl  # the corpus index — one row per contribution (CI-generated; see "Manifest")
+schema/         # JSON Schemas for contribution.json + manifest rows, with examples
 README.md
 LAYOUT.md       # this file
+SCHEMA.md       # manifest + contribution.json field schema (locked)
 ```
 
 The two tiers live in **separate top-level trees on purpose.** The CI gate runs a
@@ -29,7 +31,7 @@ additive third tree.
 corpus/<contributor_id>/<input_sha256>/
   ├── session.jsonl            # the sanitized session transcript
   ├── session.jsonl.scrubbed   # the ccs-sanitize sidecar (sanitizer_version, input_sha256, …)
-  └── <metadata file>          # this contribution's manifest row + attestation (name + schema deferred)
+  └── contribution.json        # contributor attestation + license affirmation (schema: SCHEMA.md)
 ```
 
 - **`<contributor_id>`** — the contributor's stable handle. Assignment is deferred to the
@@ -48,8 +50,8 @@ corpus/<contributor_id>/<input_sha256>/
 
 ```
 structural/<contributor_id>/<scan_id>/
-  ├── scan.json        # scan.py --json output (content-free structural profile)
-  └── <metadata file>  # this contribution's manifest row + attestation (name + schema deferred)
+  ├── scan.json            # scan.py --json output (content-free structural profile)
+  └── contribution.json    # contributor attestation + license affirmation (schema: SCHEMA.md)
 ```
 
 - **`<scan_id>`** — the SHA-256 of the canonical `scan.json` bytes.
@@ -74,16 +76,18 @@ structural-only-for-v0 scope, and why no PII-takedown obligation attaches to thi
 
 `manifest.jsonl` at the repository root is the corpus **index** — one JSON object per line,
 one line per contribution, spanning both tiers. It is **generated and validated by CI** from
-the per-contribution metadata files, not hand-edited in a pull request: a single
-hand-appended index would be a merge-conflict magnet as concurrent contributions land.
+the per-contribution `contribution.json` files (plus CI-derived provenance), not hand-edited
+in a pull request: a single hand-appended index would be a merge-conflict magnet as concurrent
+contributions land.
 
-The manifest **field schema is deferred** and locked separately before contributor #1. The
-required fields are already fixed in principle:
-
-- **Tier 1:** `claude_code_version`, `sanitizer_version`, `input_sha256`, `contributor_id`,
-  `contributed_at`, `license`
-- **Tier 2:** `scan_version`, `claude_code_version`, `contributor_id`, `contributed_at`,
-  `license`, plus a tier marker
+The manifest **field schema is now locked** in **[SCHEMA.md](SCHEMA.md)**, alongside the
+`contribution.json` schema and the machine-readable JSON Schemas under [`schema/`](schema/).
+The required fields are as fixed in principle, with two corrections recorded in SCHEMA.md:
+`claude_code_version` becomes `claude_code_versions` (an array — a `scan.json` profiles a whole
+projects-root and a resumed session can span an upgrade), and every row carries a `tier` and a
+`verification` marker (`ci-rescan` for Tier 1, `version-attested` for Tier 2) so consumers can
+tell the tiers apart from the manifest alone. The schema is versioned (`schema_version`) so the
+structural-tier variant is additive, not a retrofit.
 
 The `manifest.jsonl` currently committed is an **empty placeholder** — no contributions have
 landed yet.
@@ -92,12 +96,15 @@ landed yet.
 
 Deferred on purpose, to avoid premature lock-in:
 
-- The **manifest field schema** and the per-contribution metadata file's **name and fields**
-  — locked with the manifest-schema work.
 - The **CI gate mechanism** — how the `corpus/**` and `structural/**` path globs map to jobs,
-  and the re-scan implementation itself — locked with the CI-gate work. Note for that work:
-  the `structural/**` glob must target the `<contributor_id>/<scan_id>/` contribution depth
-  (or explicitly exclude `structural/README.md`), so the tier doc is never mistaken for a
-  contribution.
+  the re-scan implementation, and how CI generates `manifest.jsonl` from the `contribution.json`
+  files plus derived provenance — locked with the CI-gate work. [SCHEMA.md](SCHEMA.md) is the
+  contract it builds against. Note for that work: the `structural/**` glob must target the
+  `<contributor_id>/<scan_id>/` contribution depth (or explicitly exclude `structural/README.md`),
+  so the tier doc is never mistaken for a contribution.
 - **`<contributor_id>` assignment** and the end-to-end contribution path — locked with the
-  contribution-path work.
+  contribution-path work. (The `contributor_id` *format* is fixed in [SCHEMA.md](SCHEMA.md);
+  only its assignment is deferred.)
+
+The **manifest field schema** and the per-contribution metadata file's name and fields, both
+previously deferred here, are now locked in [SCHEMA.md](SCHEMA.md).

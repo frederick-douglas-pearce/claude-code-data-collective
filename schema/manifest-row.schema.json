@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/frederick-douglas-pearce/claude-code-data-collective/schema/manifest-row.schema.json",
+  "title": "CCDC manifest.jsonl row",
+  "description": "One CI-generated index row per contribution. Tier 1 (full) and Tier 2 (structural) rows are mutually exclusive shapes. See SCHEMA.md.",
+  "oneOf": [
+    { "$ref": "#/$defs/full" },
+    { "$ref": "#/$defs/structural" }
+  ],
+  "$defs": {
+    "hex64": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "contributorId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,38}$"
+    },
+    "utcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claudeCodeVersions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/version" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "full": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "tier",
+        "contributor_id",
+        "path",
+        "contributed_at",
+        "license",
+        "claude_code_versions",
+        "verification",
+        "input_sha256",
+        "sanitizer_version"
+      ],
+      "properties": {
+        "schema_version": { "const": "1" },
+        "tier": { "const": "full" },
+        "contributor_id": { "$ref": "#/$defs/contributorId" },
+        "path": {
+          "type": "string",
+          "pattern": "^corpus/[a-z0-9][a-z0-9-]{0,38}/[0-9a-f]{64}/$"
+        },
+        "contributed_at": { "$ref": "#/$defs/utcDateTime" },
+        "license": { "const": "CCDC-1.0" },
+        "claude_code_versions": { "$ref": "#/$defs/claudeCodeVersions" },
+        "verification": { "const": "ci-rescan" },
+        "input_sha256": { "$ref": "#/$defs/hex64" },
+        "sanitizer_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "structural": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "tier",
+        "contributor_id",
+        "path",
+        "contributed_at",
+        "license",
+        "claude_code_versions",
+        "verification",
+        "scan_id",
+        "scan_version"
+      ],
+      "properties": {
+        "schema_version": { "const": "1" },
+        "tier": { "const": "structural" },
+        "contributor_id": { "$ref": "#/$defs/contributorId" },
+        "path": {
+          "type": "string",
+          "pattern": "^structural/[a-z0-9][a-z0-9-]{0,38}/[0-9a-f]{64}/$"
+        },
+        "contributed_at": { "$ref": "#/$defs/utcDateTime" },
+        "license": { "const": "CCDC-1.0" },
+        "claude_code_versions": { "$ref": "#/$defs/claudeCodeVersions" },
+        "verification": { "const": "version-attested" },
+        "scan_id": { "$ref": "#/$defs/hex64" },
+        "scan_version": { "$ref": "#/$defs/version" }
+      }
+    }
+  }
+}

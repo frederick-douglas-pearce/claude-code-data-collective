@@ -45,8 +45,9 @@ difference in verification strength**. Consumers can tell which is which from th
 (`corpus/` vs. `structural/`) and from the manifest.
 
 See **[LAYOUT.md](LAYOUT.md)** for the exact per-contribution path conventions and where the
-manifest lives, and **[structural/README.md](structural/README.md)** for the Tier 2
-contribution artifact format and tier policy.
+manifest lives, **[SCHEMA.md](SCHEMA.md)** for the locked `manifest.jsonl` and
+`contribution.json` field schemas, and **[structural/README.md](structural/README.md)** for the
+Tier 2 contribution artifact format and tier policy.
 
 ## Built on the sanitizer + format reference
 
