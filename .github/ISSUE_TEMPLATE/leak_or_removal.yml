@@ -1,0 +1,71 @@
+name: Report a leak / data-removal request
+description: Report PII or a secret you found in the corpus, or request removal of contributed data
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Use this to **report leaked PII/secrets** in the corpus, or to **request
+        removal** of data you contributed. We triage these first.
+
+
+        ⚠️ **Do NOT paste the leaked secret or PII here.** This issue is public.
+        Point to *where* it is (file path and/or the contribution's
+        `input_sha256` / `scan_id`) and *describe* the kind of data — don't
+        reproduce it. If a live credential leaked, **rotate it now**; we cannot
+        rotate it for you.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this?
+      options:
+        - Leak report — PII or a secret is present in a committed file
+        - Removal request — take down data I contributed
+        - Not sure / other
+    validations:
+      required: true
+  - type: dropdown
+    id: relationship
+    attributes:
+      label: Your relationship to the data
+      options:
+        - I contributed this data
+        - The data is about me / my org (I did not contribute it)
+        - I am a third party who noticed it
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: >
+        File path(s) in the repo, and/or the contribution handle — `input_sha256`
+        (Tier 1) or `scan_id` (Tier 2) from the manifest. This is the handle we
+        use to find and remove the data.
+      placeholder: "corpus/<contributor_id>/<input_sha256>/session.jsonl"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What kind of data is exposed?
+      description: >
+        Describe the category WITHOUT reproducing it — e.g. "an internal
+        hostname", "a customer name", "an API key for service X". Do not paste
+        the value.
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (optional)
+      description: How we can reach you for verification, if not via this issue.
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgement
+      options:
+        - label: I have NOT pasted the actual secret/PII value into this issue.
+          required: true
+        - label: If a live credential leaked, I understand I must rotate it myself.
+          required: true
