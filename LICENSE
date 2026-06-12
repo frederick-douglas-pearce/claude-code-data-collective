@@ -1,0 +1,149 @@
+CCDC Data License
+Version 1.0, June 2026
+
+Claude Code Data Collective (CCDC)
+
+This license governs use of the curated corpus of sanitized Claude Code
+session data made available by the Claude Code Data Collective (the
+"Corpus"). By accessing, using, or distributing any part of the Corpus, You
+agree to the terms below. If You do not agree, You may not use the Corpus.
+
+
+PREAMBLE (non-binding)
+
+This preamble explains intent and is not part of the operative terms; the
+numbered sections below control. CCDC aims to make sanitized session data
+broadly reusable, including commercially, while (a) requiring credit to the
+Corpus, and (b) keeping downstream use aligned with Anthropic's Commercial
+Terms by not permitting the Data to be used to train AI models that compete
+with Anthropic. The Corpus contains material generated through Anthropic's
+Claude products; recipients remain independently subject to Anthropic's own
+terms governing that material. This license is assembled from clauses modeled
+on widely used data and model licenses; it is offered as is and is not legal
+advice.
+
+
+1. DEFINITIONS
+
+1.1 "Corpus" or "Data" means the session data and associated files made
+available under this license, in whole or in part, with or without
+modification.
+
+1.2 "Contributor" means a person who submits Data to the Corpus.
+
+1.3 "Licensor" means the CCDC maintainers, acting on behalf of Contributors,
+who make the Corpus available under this license.
+
+1.4 "You" means an individual or entity exercising rights under this license.
+
+1.5 "Results" means any outcome of computational analysis of the Data —
+including statistics, parsers, schemas, evaluations, and reports — but
+excluding any AI Model as defined below.
+
+1.6 "AI Model" means any machine-learning model, including its weights and
+parameters, that generates text, code, or other content, and any system
+built on such a model.
+
+1.7 "Competing Model" means an AI Model that is intended to substitute for,
+or compete with, the AI products or services offered by Anthropic, PBC.
+
+1.8 "Share" means to provide the Data to a third party, by any means, with or
+without modification.
+
+
+2. GRANT OF RIGHTS
+
+2.1 Subject to the conditions in Section 3, Licensor grants You a worldwide,
+royalty-free, non-exclusive license to use, reproduce, modify, analyze, and
+Share the Data, including for commercial purposes.
+
+2.2 No Restrictions on Results. Except as stated in Section 3.2, this license
+imposes no restriction on Your use, modification, or sharing of Results.
+Analysis, parsing, research, and the development of tools that read or
+describe the Data are expressly permitted. For the avoidance of doubt, an AI
+Model is not a Result (see Sections 1.5 and 3.2).
+
+
+3. CONDITIONS
+
+3.1 Attribution. In any distribution of the Data, and in documentation
+accompanying any product or service that incorporates the Data or material
+Results derived from it, You must retain a copy of this license and include
+the following notice: "Includes data from the Claude Code Data Collective
+(CCDC), used under the CCDC Data License," together with a link to the Corpus
+where practicable. You must not remove or alter attribution or provenance
+notices accompanying the Data.
+
+3.2 No Competing Models. You will not use the Data, or any output or material
+derived from the Data, to train, fine-tune, develop, or improve a Competing
+Model. For clarity, this Section does not restrict the creation of Results
+(Section 2.2).
+
+3.3 Pass-Through. Each time You Share the Data, You must (a) include a copy of
+this license with it, (b) retain all attribution and provenance notices, and
+(c) not offer or impose any term that removes or conflicts with the
+conditions of this license. Each recipient of the Data from You receives the
+rights and conditions in this license directly from Licensor. You may offer
+additional or different terms for material You add, provided those terms do
+not restrict the Data itself below the terms of this license.
+
+
+4. NO WARRANTY
+
+The Data is provided on an "AS IS" and "AS AVAILABLE" basis, without
+representations, warranties, or conditions of any kind, whether express or
+implied, including without limitation any warranties of title,
+non-infringement, accuracy, completeness, merchantability, fitness for a
+particular purpose, or that the Data is free of errors or of personal or
+sensitive information. You bear the entire risk of using the Data.
+
+
+5. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by applicable law, in no event will Licensor
+or any Contributor be liable to You on any legal theory — including, without
+limitation, negligence — for any direct, indirect, special, incidental,
+consequential, punitive, or exemplary damages, or for any loss of data,
+arising out of or related to this license or the use of or inability to use
+the Data, even if advised of the possibility of such damages.
+
+
+6. TERMINATION
+
+6.1 Your rights under this license terminate automatically if You breach any
+of its terms.
+
+6.2 If the breach is curable, Your rights are reinstated upon cure within 30
+days of the date You become aware of the breach, provided the cure occurs
+before Licensor has notified You of the breach; or, where Licensor has
+notified You, upon cure within 30 days of that notice.
+
+6.3 Sections 1, 4, 5, 7, and 8 survive termination.
+
+
+7. NO TRADEMARK OR ENDORSEMENT
+
+This license grants no rights in the names, logos, or trademarks of Licensor,
+any Contributor, or Anthropic, PBC. "Anthropic" and "Claude" are trademarks
+of Anthropic, PBC. CCDC is an independent project and is not affiliated with,
+sponsored by, or endorsed by Anthropic, PBC. Nothing in this license asserts
+any right over those trademarks.
+
+
+8. MISCELLANEOUS
+
+8.1 Severability. If any provision of this license is held unenforceable,
+that provision is reformed only to the extent necessary to make it
+enforceable, and the remaining provisions remain in effect.
+
+8.2 No Unlawful Use. This license does not grant permission to use the Data
+in violation of any applicable law, or in violation of Anthropic's Commercial
+Terms or Usage Policies to the extent they independently apply to material in
+the Corpus.
+
+8.3 Versions. Licensor may publish revised versions of this license. The
+Corpus identifies the version that applies; You may use the Corpus under the
+version of this license under which You received it.
+
+
+END OF TERMS

@@ -10,10 +10,10 @@ neither scales, generalizes, nor can be independently verified. CCDC turns "shar
 sanitized sessions" into a shared asset that tool builders and researchers can develop
 against, validate against, and compare against.
 
-> **Status — v0 scaffolding.** The repository skeleton and the locked
-> [file layout](LAYOUT.md) exist. The governance doc, license, contributor attestation, CI
-> re-scan gate, and seed corpus are still being finalized, so the corpus is **not yet open
-> for contributions** — see [Contributing](#contributing).
+> **Status — v0 scaffolding.** The repository skeleton, the locked
+> [file layout](LAYOUT.md), and the [corpus license](LICENSE) exist. The governance doc,
+> contributor attestation, CI re-scan gate, and seed corpus are still being finalized, so the
+> corpus is **not yet open for contributions** — see [Contributing](#contributing).
 
 ## Governance model
 
@@ -74,7 +74,7 @@ contributor, the trust asymmetry, and the build sequence — lives in `docs/`:
 
 ## Contributing
 
-**Not yet open.** The end-to-end contribution path, governance doc, license, contributor
+**Not yet open.** The end-to-end contribution path, governance doc, contributor
 attestation, and the CI re-scan gate are being finalized. Once live, contributing will mean:
 sanitize (Tier 1) or scan (Tier 2) your sessions locally, open a pull request adding them
 under the conventions in [LAYOUT.md](LAYOUT.md), and pass maintainer review plus the CI
@@ -83,8 +83,18 @@ re-sanitized if the sanitizer's rules improve.
 
 ## License
 
-To be published before the corpus opens for contributions. The intended direction — not yet
-final — is to permit commercial reuse while explicitly disclaiming the training of competing
-AI models, keeping downstream consumers aligned with
-[Anthropic's Commercial Terms](https://www.anthropic.com/legal/commercial-terms). Until a
-`LICENSE` lands, no usage terms are granted.
+Corpus content — everything under [`corpus/`](corpus/) and [`structural/`](structural/), plus
+the [`manifest.jsonl`](manifest.jsonl) index — is offered under the
+**[CCDC Data License, Version 1.0](LICENSE)**. It permits commercial reuse and requires
+attribution, while prohibiting use of the Data to train AI models that compete with Anthropic —
+keeping downstream consumers aligned with
+[Anthropic's Commercial Terms](https://www.anthropic.com/legal/commercial-terms). The
+restriction is **pass-through**: anyone who redistributes the Data must carry the same terms
+forward, so they survive re-hosting (for example the deferred Hugging Face mirror).
+
+The license expressly **does not** restrict the creation of *Results* — analysis, parsers,
+schemas, evaluations, and research tooling that read or describe the Data — which is the
+primary intended downstream use. The no-compete restriction reaches only the training of
+competing AI models. See the [LICENSE](LICENSE) for the controlling terms; this summary is
+non-binding. (The license governs corpus **content**; repository tooling and docs are not
+claimed by it.)
