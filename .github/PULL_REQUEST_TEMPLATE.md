@@ -24,13 +24,27 @@ Replicate every section; squash-merge to main.
 - [ ] Layout conforms to [`LAYOUT.md`](../LAYOUT.md) (contribution path, filenames, sidecar present)
 - [ ] CI re-scan / attestation check is green (once the gate exists)
 
+## Contributor attestation
+
+<!--
+Required for Tier 1 / Tier 2 contribution PRs; mark N/A for infrastructure/docs PRs.
+This is the human backstop for what the CI gate cannot catch. The full text is ATTESTATION.md;
+your committed contribution.json is the retained, per-contribution record of this affirmation.
+-->
+
+- [ ] **N/A** — this is an infrastructure / docs PR, not a contribution.
+- [ ] I have read [`ATTESTATION.md`](../ATTESTATION.md) and **affirm it in full** for this contribution.
+- [ ] My `contribution.json` sets `license: "CCDC-1.0"`, `attestation.right_to_contribute: true`, and `attestation.original_retained: true` — the retained record of that affirmation.
+- [ ] My commits are **signed off** (`git commit -s`), so each carries a `Signed-off-by` trailer.
+
 ## Security review
 
 <!-- This corpus can carry secrets and PII. Confirm all that apply. -->
 
 - [ ] **No raw session JSONL** — Tier 1 files are `ccs-sanitize` output with their `.scrubbed` sidecar; Tier 2 files are `scan.py --json` output (content-free by construction). No file came straight from `~/.claude/projects/`.
 - [ ] **No secrets** in any added file, example, or commit history (Anthropic/OpenAI/GitHub/AWS/GCP keys, PEM blocks, tokens).
-- [ ] **Right to share** — for a contribution: I have the right to share this data under the corpus license and any applicable employer policy (full attestation per the contribution path).
+- [ ] **Right to share** — for a contribution: I have the right to share this data under the corpus license and any applicable employer policy (full attestation: [`ATTESTATION.md`](../ATTESTATION.md)).
+- [ ] **I read my own sanitized transcript** for residual PII/secrets the gate cannot catch (contribution PRs; see [`ATTESTATION.md`](../ATTESTATION.md) §B4).
 - [ ] **Closer read done** if this PR touches `.claude/hooks/`, `.github/workflows/`, or the contribution/ingest path.
 
 ## Breaking changes

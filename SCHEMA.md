@@ -38,9 +38,9 @@ One per contribution, committed alongside the data at the contribution directory
 |---|---|---|---|
 | `schema_version` | `"1"` | yes | Version of the `contribution.json` schema this file follows. |
 | `contributor_id` | string (slug) | yes | The contributor's stable handle. **Must equal** the `<contributor_id>` path segment. Assignment is deferred (see [Still deferred](#still-deferred)); the *format* is locked here: `^[a-z0-9][a-z0-9-]{0,38}$`. |
-| `license` | `"CCDC-1.0"` | yes | The contributor's affirmation that this contribution is licensed under the [CCDC Data License v1.0](LICENSE). CI validates it equals the corpus license. |
-| `attestation.right_to_contribute` | `true` | yes | The contributor affirms they have the right to contribute this data. |
-| `attestation.original_retained` | `true` | yes | The contributor affirms they retain the original input, so the contribution can be re-sanitized if the sanitizer's rules improve (Tier 1) / re-derived if needed. |
+| `license` | `"CCDC-1.0"` | yes | The contributor's affirmation that this contribution is licensed under the [CCDC Data License v1.0](LICENSE) ([ATTESTATION.md §A](ATTESTATION.md#a-license-acceptance)). CI validates it equals the corpus license. |
+| `attestation.right_to_contribute` | `true` | yes | The contributor affirms they have the right to contribute this data — the machine-readable handle for [ATTESTATION.md §B](ATTESTATION.md#b-right-to-contribute) in full (ownership, the Anthropic Inputs/Outputs basis, employer/confidentiality, third-party/PII, org-specific scrubbing, sanitization, and the public-and-permanent and removal-path acknowledgments). |
+| `attestation.original_retained` | `true` | yes | The contributor affirms they retain the original input, so the contribution can be re-sanitized if the sanitizer's rules improve (Tier 1) / re-derived if needed ([ATTESTATION.md §C](ATTESTATION.md#c-you-retain-the-original)). |
 
 The file is tier-agnostic: which tier a contribution belongs to is decided by its **path**
 (`corpus/` vs `structural/`), never by a field in this file — consistent with LAYOUT.md's

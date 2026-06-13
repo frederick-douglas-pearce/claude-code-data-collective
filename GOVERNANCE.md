@@ -45,7 +45,7 @@ conditions, not preferences:
 3. **It carries a complete manifest contribution record**, per the locked field schema in
    [SCHEMA.md](SCHEMA.md). `input_sha256` is mandatory — it is the only handle for later removal.
 4. **The contributor has the right to share it** and has affirmed the
-   [contributor attestation](CONTRIBUTING.md#attestation): right to share under
+   [contributor attestation](ATTESTATION.md): right to share under
    [Anthropic's Commercial Terms](https://www.anthropic.com/legal/commercial-terms) and any
    applicable employer policy, and agreement to the [CCDC Data License](LICENSE).
 
@@ -189,7 +189,8 @@ deliberately hard to change; treat amendments to them as schema migrations, not 
 ## See also
 
 - [README.md](README.md) — what CCDC is and the cross-tier comparison.
-- [CONTRIBUTING.md](CONTRIBUTING.md) — the contributor walkthrough and attestation *(being finalized)*.
+- [ATTESTATION.md](ATTESTATION.md) — what every contributor affirms.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — the contributor walkthrough *(being finalized)*.
 - [LAYOUT.md](LAYOUT.md) · [SCHEMA.md](SCHEMA.md) — locked per-contribution paths and field schemas.
 - [REMOVAL.md](REMOVAL.md) — removal mechanics *(being finalized,
   [#6](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/6))*.
