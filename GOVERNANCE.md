@@ -69,11 +69,53 @@ Every PR passes through two layers. The mechanical layer is the load-bearing tru
   from Tier 1's gate — structural output is zero-leak by construction regardless of trust — and
   it is visible to consumers from the path (`structural/` vs. `corpus/`) and the manifest.
 - **Maintainer review.** The maintainer confirms tier placement, manifest completeness,
-  attestation, and overall fit, and merges. Reviewers do not paste suspected secrets/PII into
-  PR threads — those go through the removal path below.
+  attestation, and overall fit, and merges. Critically, the maintainer also **reads the diff
+  for what the mechanical gate structurally cannot catch** (see the coverage boundary below) —
+  novel-format secrets, names/emails, and org-specific identifiers. In v0 this human pass is a
+  **required pre-merge backstop, not optional.** Reviewers do not paste suspected secrets/PII
+  into PR threads — those go through the removal path below.
 
 The verification-strength asymmetry between the tiers is intentional and disclosed; see
 [`docs/prd-ccdc.md`](docs/prd-ccdc.md) §3.
+
+### What the gate does and does not guarantee
+
+The CI re-scan re-runs the sanitizer's *own* residual scan, so it catches only **patterns the
+scanner already knows**. A novel secret format — or any PII (names, emails, bespoke identifiers)
+— that the scanner has no signature for passes *both* the contributor's local sanitize *and* the
+CI re-scan, because both share the same blind spot. The gate's real guarantee is therefore
+**defense against a tampered, hand-edited, or wrong-config'd file for known patterns — not
+prevention of unknown-pattern leaks.** That boundary is inherent to pattern-based scanning, it is
+accepted, and it is why the two catch-nets above and below it are load-bearing, not decorative:
+the **required maintainer diff review** (pre-merge) and the **leak/removal path** (post-merge).
+The evidence base for this is recorded in
+[`docs/research-governance-norms.md`](docs/research-governance-norms.md) §3b.
+
+### Sanitizer versioning & coverage updates
+
+The sanitizer is shared upstream tooling
+([`ccs-sanitize`](https://github.com/frederick-douglas-pearce/claude-code-sessions/tree/main/tooling/sanitizer)),
+not a CCDC artifact. The CI gate **pins it to an immutable commit**
+([`ci/requirements.txt`](ci/requirements.txt)), so the residual scan is reproducible and cannot
+change silently. New contributors will surface patterns the current rules do not catch; here is
+how that is handled — and one thing it deliberately is **not**:
+
+- **Sanitizer config is never bundled into a contribution PR.** Validation config must never be
+  contributor-controlled — a contributor able to influence the residual scanner could *weaken* it
+  to pass their own leak. (The asymmetry: extending a contributor's *local* scrub is strictly
+  safe; touching the *CI* scanner is not.) This is structural, not a judgment call.
+- **Rule improvements flow upstream.** A new pattern is added and tested in `claude-code-sessions`,
+  reviewed there, and released; CCDC then **bumps the pinned commit in a separate,
+  maintainer-reviewed PR.** The affected contributor **re-sanitizes from their retained original**
+  and resubmits — the reason contributors are asked to keep their originals.
+- **Org-specific patterns** too narrow for the shared scanner (internal hostnames, project
+  codenames) are the **contributor's pre-submission responsibility**, covered by the attestation +
+  maintainer review + leak path — *not* by the mechanical gate. Contributors are encouraged to
+  extend their own local scrub; they never alter the CI config.
+- **On every pin bump, the corpus is re-scanned** against the new scanner, so a pattern that
+  becomes known later is caught in already-merged data. Such a hit is a **disclosure event** and
+  is routed through the [removal path](#removal--leak-response), not a public CI log. *(Planned
+  CI job; see [`docs/research-governance-norms.md`](docs/research-governance-norms.md).)*
 
 ## Removal & leak response
 
@@ -145,3 +187,5 @@ deliberately hard to change; treat amendments to them as schema migrations, not 
 - [LICENSE](LICENSE) — the CCDC Data License, Version 1.0.
 - [`docs/prd-ccdc.md`](docs/prd-ccdc.md) · [`docs/roadmap-ccdc.md`](docs/roadmap-ccdc.md) —
   design rationale and sequencing.
+- [`docs/research-governance-norms.md`](docs/research-governance-norms.md) — the due-diligence
+  scan of comparable-dataset governance norms behind these decisions.
