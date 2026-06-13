@@ -151,7 +151,16 @@ that is a hard requirement, not a convenience.
 ## Continuity & escalation
 
 The dominant risk to CCDC is sustainability and PII-triage liability concentrated on one
-maintainer. The mitigation is structural, not "the maintainer works harder":
+maintainer — and, as the xz-utils incident showed, a solo maintainer of a trust-bearing
+artifact is a *security* exposure, not just a continuity one.
+
+> ⚠️ **Known v0 risk, disclosed not hidden: CCDC currently has a single maintainer and no
+> named backup.** This is the project's top structural risk. Naming a second trusted human with
+> admin rights, and documenting succession (repo / org / domain / credentials), is a
+> pre-wider-launch goal. Until then the mitigations below are what keep the corpus safe and
+> recoverable without heroics.
+
+The mitigation is structural, not "the maintainer works harder":
 
 - **The corpus is fully reconstructable** from the manifest + sidecars — recoverable without
   the maintainer.
