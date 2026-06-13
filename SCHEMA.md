@@ -113,16 +113,39 @@ Example — [`schema/examples/manifest-row.full.example.json`](schema/examples/m
 | Field | Type | Provenance | Meaning |
 |---|---|---|---|
 | `scan_id` | hex64 | **validated** (path == `sha256(scan.json)`) | SHA-256 of the canonical `scan.json` bytes (`scan.py` emits `sort_keys=True`, so the hash is deterministic). CI re-hashes `scan.json` and confirms it equals the `<scan_id>` path segment — the structural tier is fully content-addressed. |
-| `scan_version` | string | **derived** from `scan.json` | The scanner's own version. **Requires an upstream change** — see [Upstream dependencies](#upstream-dependencies). |
+| `tool` | `"ccs-format-scan"` | **validated** (allowlist; == `scan.json`) | The scanner that produced `scan.json`, from its `--json` `tool` field. Schema-pinned to the canonical scanner for v0 (a one-entry allowlist). With `scan_version` it forms the **attestation key** — see [Tier 2 attestation key](#tier-2-attestation-key). |
+| `scan_version` | string | **derived** from `scan.json` | The scanner's own version, from its `--json` `scan_version` field (`ccs-format-scan` ≥ 0.1.0 stamps it). |
 
 `claude_code_versions` (Tier 2) is derived from the keys of `scan.json`'s `versions` object
 (the scanner reports versions as a multi-set with counts; the manifest keeps the distinct
 keys).
 
+#### Tier 2 attestation key
+
+A structural profile cannot be independently re-derived (re-derivation needs the raw
+projects-root the contributor withholds), so the tier is **version-attested**, not re-scanned.
+The attestation key is the **pair `(tool, scan_version)`**, treated jointly — never
+`scan_version` alone. A bare semver is ambiguous: a forked scanner could also call itself
+`0.1.0`. Pairing it with `tool` records *which* scanner produced the profile, so an honest fork
+at the same version is distinct provenance rather than a collision.
+
+The `tool` value is **allowlisted in the schema** (const `"ccs-format-scan"` for v0). This is an
+*admission* gate, not just a label: the zero-leak-by-construction guarantee belongs to **that
+scanner's** `EMITTABLE_VALUE_FIELDS` whitelist and SECURITY CONTRACT, **not** to "structural
+profiles" generically — an unrecognized fork could emit value-bearing fields. So an unrecognized
+`tool` fails validation outright; admitting another trusted scanner is a deliberate, additive
+schema change (the allowlist grows under review).
+
+**Honest limitation.** This prevents *honest* same-version forks from colliding and
+*unrecognized* tools from entering, but it cannot stop a fork that **dishonestly** stamps
+`tool: "ccs-format-scan"`. That residual is inherent to a version-attested-not-re-scanned tier
+(PRD D-CCDC-2) and is accepted because the output is zero-leak by construction regardless of
+trust. The launch post (C1) names this asymmetry.
+
 Example — [`schema/examples/manifest-row.structural.example.json`](schema/examples/manifest-row.structural.example.json):
 
 ```json
-{"schema_version":"1","tier":"structural","contributor_id":"example-contributor","path":"structural/example-contributor/3a5e7f9d2b4c6e8f0a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3e5f/","contributed_at":"2026-06-12T17:30:00Z","license":"CCDC-1.0","claude_code_versions":["1.2.1","1.2.3"],"verification":"version-attested","scan_id":"3a5e7f9d2b4c6e8f0a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3e5f","scan_version":"0.1.0"}
+{"schema_version":"1","tier":"structural","contributor_id":"example-contributor","path":"structural/example-contributor/3a5e7f9d2b4c6e8f0a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3e5f/","contributed_at":"2026-06-12T17:30:00Z","license":"CCDC-1.0","claude_code_versions":["1.2.1","1.2.3"],"verification":"version-attested","scan_id":"3a5e7f9d2b4c6e8f0a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3e5f","tool":"ccs-format-scan","scan_version":"0.1.0"}
 ```
 
 ## Why `claude_code_versions` is an array
@@ -142,13 +165,14 @@ about both. This is a deliberate correction to LAYOUT.md's wording, recorded her
 
 Both upstream tools in
 [`claude-code-sessions`](https://github.com/frederick-douglas-pearce/claude-code-sessions)
-are operational (v0). One small additive change is still required:
+are operational (v0), and the schema's dependencies on them are now satisfied:
 
-- **`scan.py` must stamp its own version into `--json` output** (Tier 2). The scanner is
-  functional, but its JSON currently carries no `scan_version`. Tier 2's entire trust basis is
-  *version attestation*, so `scan_version` is a hard requirement: **structural/ contributions
-  cannot be validated until `scan.py` emits `scan_version` (and a tool identifier) in its
-  JSON.** This is the one open upstream dependency for this schema.
+- **`scan.py` stamps `tool` + `scan_version` into `--json`** (Tier 2) — ✅ resolved by
+  [claude-code-sessions#122](https://github.com/frederick-douglas-pearce/claude-code-sessions/pull/122)
+  (`tool: "ccs-format-scan"`, `scan_version: "0.1.0"`, with a CHANGELOG bump policy and a
+  cross-repo contract test). The structural row reads both directly and treats the pair as the
+  [attestation key](#tier-2-attestation-key). The field names `tool`/`scan_version` and the
+  value `ccs-format-scan` are a pinned cross-repo contract — renaming any is a downstream break.
 - **The `.scrubbed` sidecar is confirmed against the built sanitizer** (Tier 1). `ccs-sanitize`
   is functionally built; its `sidecar.py` emits exactly the PRD §10 fields this schema derives
   from — `sanitizer_version`, `input_sha256`, `scrubbed_at`, `config_version`,
