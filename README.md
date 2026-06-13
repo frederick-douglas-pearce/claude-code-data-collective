@@ -26,6 +26,9 @@ against, validate against, and compare against.
   [file layout](LAYOUT.md) is structured so that mirror is a later *additive* step rather
   than a migration.
 
+See **[GOVERNANCE.md](GOVERNANCE.md)** for the full curation model: inclusion criteria, the
+review gate, the removal SLA, and continuity / escalation.
+
 ## Two contribution tiers
 
 | Tier | What you contribute | Trust mechanism | Lives under |
