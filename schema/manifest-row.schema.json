@@ -75,6 +75,7 @@
         "claude_code_versions",
         "verification",
         "scan_id",
+        "tool",
         "scan_version"
       ],
       "properties": {
@@ -90,6 +91,10 @@
         "claude_code_versions": { "$ref": "#/$defs/claudeCodeVersions" },
         "verification": { "const": "version-attested" },
         "scan_id": { "$ref": "#/$defs/hex64" },
+        "tool": {
+          "const": "ccs-format-scan",
+          "description": "The scanner that produced scan.json, from its --json output. The (tool, scan_version) pair is the structural-tier attestation key. v0 allowlist is the single canonical scanner; admitting another is a deliberate additive schema change."
+        },
         "scan_version": { "$ref": "#/$defs/version" }
       }
     }
