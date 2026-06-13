@@ -187,7 +187,11 @@ Locked separately, outside this document:
 
 - **`<contributor_id>` assignment** — the *format* is locked here (`^[a-z0-9][a-z0-9-]{0,38}$`);
   *how* a contributor is assigned one is part of the contribution-path work.
-- **The CI gate mechanism** — how the `corpus/**` and `structural/**` path globs map to jobs,
-  the independent re-scan implementation, and how CI generates `manifest.jsonl` from the
-  per-contribution `contribution.json` files plus derived provenance. These schemas are the
-  contract that work builds against.
+- **Manifest `manifest.jsonl` generation** — the CI **re-scan gate is now implemented**
+  (issue #8: [`ci/validate_contribution.py`](ci/validate_contribution.py) +
+  [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)). It
+  routes by path, re-derives every check (never trusting the sidecar), and **validates** the
+  would-be row against [`schema/manifest-row.schema.json`](schema/manifest-row.schema.json) —
+  these schemas are the contract it builds against. The gate is **validate-only**: it does not
+  *write* `manifest.jsonl`. Row generation needs the merge-commit `contributed_at` (which does
+  not exist pre-merge), so it lands with the contribution-path work (#10).

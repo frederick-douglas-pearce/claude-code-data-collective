@@ -1,0 +1,68 @@
+name: Contribution gate
+
+# The independent CI re-scan merge gate (issue #8 / sanitizer PRD D-4). This is the
+# load-bearing trust mechanism for the corpus: manual review does not scale, so this
+# gate re-derives the security checks on every contribution PR and NEVER trusts the
+# contributor's .scrubbed sidecar. See ci/validate_contribution.py for the full model.
+#
+# Two jobs:
+#   - gate:     re-scans + validates the contribution dirs a PR actually touches.
+#   - selftest: runs the validator's own test suite so the gate cannot regress.
+#
+# Triggered on changes to either tier tree OR to the gate's own code/schema, so a PR
+# that edits the validator or a schema is itself validated. A PR that touches a tier
+# tree but no real contribution dir (e.g. structural/README.md) passes the gate with
+# "nothing to re-scan"; a contribution file at the wrong depth is a stray and FAILS.
+
+on:
+  pull_request:
+    paths:
+      - "corpus/**"
+      - "structural/**"
+      - "ci/**"
+      - "schema/**"
+      - ".github/workflows/contribution-gate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ci/**"
+      - "schema/**"
+      - ".github/workflows/contribution-gate.yml"
+
+jobs:
+  selftest:
+    name: Validator self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: pip install -r ci/requirements.txt
+      - name: Run validator test suite
+        run: python3 ci/tests/test_validate_contribution.py
+
+  gate:
+    name: Re-scan contributions
+    # Only PRs carry a contribution to gate; the push trigger is for selftest.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the merge-base diff below resolves the PR's own changes.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: pip install -r ci/requirements.txt
+      - name: Compute changed files
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        # Three-dot diff (merge-base..HEAD) = exactly what this PR changes.
+        run: git diff --name-only "$BASE...$HEAD" > changed-files.txt
+      - name: Re-scan + validate touched contributions
+        run: python3 ci/validate_contribution.py --changed-files changed-files.txt

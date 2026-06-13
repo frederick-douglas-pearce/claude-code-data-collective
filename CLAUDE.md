@@ -54,8 +54,12 @@ credentials and does **not** catch arbitrary PII (names, emails, custom identifi
 matching is substring-based — variable indirection or globbing can defeat it. The diff-level backstop
 (no raw JSONL, no secrets) is yours at commit/review time.
 
-When this repo's own CI re-scan merge gate lands (see issues), it re-derives the secret scan from
-every submitted `corpus/` file and is the load-bearing trust mechanism — manual review does not scale.
+This repo's CI re-scan merge gate ([`ci/validate_contribution.py`](ci/validate_contribution.py),
+run by [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)) re-derives
+the secret scan from every submitted `corpus/` file — re-running the upstream sanitizer's *own*
+residual scan, never trusting the `.scrubbed` sidecar — and is the load-bearing trust mechanism;
+manual review does not scale. It is validate-only (it does not yet write `manifest.jsonl`; that lands
+with the contribution path, #10).
 
 ## Conventions
 
@@ -131,6 +135,7 @@ The `.claude/hooks/` here were ported from that repo and adapted (raw-session bl
 ## Status
 
 **v0 scaffolding — not yet open for contributions.** The repo skeleton, locked layout, the Tier 2
-tier doc, the design docs, and the security hooks exist. Still pending before the corpus opens:
-governance doc, license + contributor attestation, manifest schema, removal runbook, the CI re-scan
-merge gate, and the seed corpus. Work is tracked in this repo's issues (epic #2; children #3–#15).
+tier doc, the design docs, the security hooks, the license, the locked manifest/contribution schema,
+and the CI re-scan merge gate (#8 — `ci/`) exist. Still pending before the corpus opens: governance
+doc, contributor attestation, removal runbook, manifest-row *generation* + the end-to-end contribution
+path (#10), and the seed corpus. Work is tracked in this repo's issues (epic #2; children #3–#15).

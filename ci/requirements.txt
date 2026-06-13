@@ -1,0 +1,16 @@
+# Dependencies for the CCDC contribution validator / CI re-scan merge gate (#8).
+# See ci/validate_contribution.py and .github/workflows/contribution-gate.yml.
+
+# The upstream sanitizer, pinned to an immutable commit so the gate's residual
+# secret scan is reproducible and cannot be silently changed under us. The gate
+# imports ccs_sanitize.residual.scan_residual to re-run the EXACT scan the
+# sanitizer ran before the contribution was allowed to exist — never a re-vendored
+# subset of the patterns. Bump this pin deliberately (and only) when adopting a
+# newer sanitizer pattern set; the import is fail-closed, so a bad/absent install
+# fails the gate rather than weakening it.
+claude-code-sessions-sanitizer @ git+https://github.com/frederick-douglas-pearce/claude-code-sessions.git@2e85f5ec306a8b053744e023e546b3d957571086#subdirectory=tooling/sanitizer
+
+# Validates the CI-derived manifest row against the locked schema/manifest-row.schema.json
+# (and contribution.json against its schema), so the validator cannot drift from the
+# committed JSON Schema contract.
+jsonschema>=4,<5

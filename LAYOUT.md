@@ -96,12 +96,15 @@ landed yet.
 
 Deferred on purpose, to avoid premature lock-in:
 
-- The **CI gate mechanism** — how the `corpus/**` and `structural/**` path globs map to jobs,
-  the re-scan implementation, and how CI generates `manifest.jsonl` from the `contribution.json`
-  files plus derived provenance — locked with the CI-gate work. [SCHEMA.md](SCHEMA.md) is the
-  contract it builds against. Note for that work: the `structural/**` glob must target the
-  `<contributor_id>/<scan_id>/` contribution depth (or explicitly exclude `structural/README.md`),
-  so the tier doc is never mistaken for a contribution.
+- **`manifest.jsonl` generation.** The **CI re-scan gate is now implemented** (issue #8:
+  [`ci/validate_contribution.py`](ci/validate_contribution.py) +
+  [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)) — it
+  routes by path, re-derives every check, and validates the would-be row against the schema.
+  The `structural/README.md` / `.gitkeep` concern noted here is handled: the validator
+  classifies them as allowlisted non-contribution paths, and any file under a tier tree that is
+  *not* inside a `<contributor_id>/<sha256>/` contribution dir is a stray that fails the gate.
+  Still deferred to the contribution-path work (#10): *writing* `manifest.jsonl` rows, which
+  needs the merge-commit `contributed_at`. The gate is validate-only.
 - **`<contributor_id>` assignment** and the end-to-end contribution path — locked with the
   contribution-path work. (The `contributor_id` *format* is fixed in [SCHEMA.md](SCHEMA.md);
   only its assignment is deferred.)
