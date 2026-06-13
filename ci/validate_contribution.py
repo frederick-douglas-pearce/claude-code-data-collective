@@ -50,6 +50,7 @@ import hashlib
 import json
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
@@ -156,24 +157,34 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def _jsonschema_validate(instance: Any, schema_path: Path, what: str) -> None:
-    """Validate ``instance`` against a committed schema, fail-closed on the lib.
+@lru_cache(maxsize=None)
+def _schema_validator(schema_path: Path):
+    """Compile a Draft 2020-12 validator for a committed schema, once per run.
 
-    Uses the real ``jsonschema`` library against the *locked* schema files so the
-    validator can never drift from the schema contract. Like the residual import,
-    a missing library is a hard error — never a skipped check.
+    Cached so a PR validating several contributions reads + parses + compiles each
+    schema only once. Like the residual import, a missing ``jsonschema`` is a hard,
+    fail-closed error — never a skipped check. (lru_cache does not cache the raised
+    exception, so the failure re-surfaces on every call.)
     """
     try:
         import jsonschema
     except ImportError as exc:  # pragma: no cover - exercised in CI
         raise ContributionError(
-            "the jsonschema library is not importable, so "
-            f"{what} cannot be schema-validated; refusing to pass the gate. "
-            "Install ci/requirements.txt. Underlying error: " + str(exc)
+            "the jsonschema library is not importable, so contributions cannot be "
+            "schema-validated; refusing to pass the gate. Install ci/requirements.txt. "
+            "Underlying error: " + str(exc)
         ) from exc
-
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    validator = jsonschema.Draft202012Validator(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+def _jsonschema_validate(instance: Any, schema_path: Path, what: str) -> None:
+    """Validate ``instance`` against a committed schema, fail-closed on the lib.
+
+    Uses the real ``jsonschema`` library against the *locked* schema files so the
+    validator can never drift from the schema contract.
+    """
+    validator = _schema_validator(schema_path)
     errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.path))
     if errors:
         first = errors[0]
@@ -207,17 +218,20 @@ def _validate_contribution_json(contrib_dir: Path, cid_seg: str) -> dict:
 # --- Tier 1 (full) ----------------------------------------------------------
 
 
-def _claude_code_versions_from_session(session_path: Path) -> list[str]:
+def _claude_code_versions(lines: list[str]) -> list[str]:
     """Distinct top-level ``version`` values across the JSONL, in first-seen order.
 
-    A resumed session can span a Claude Code upgrade, so this is an array
-    (SCHEMA.md "Why claude_code_versions is an array"). Lines that do not parse as
-    JSON are skipped for version extraction — the residual scan runs over the raw
-    bytes regardless, so a malformed line cannot smuggle content past the gate; it
-    just doesn't contribute a version.
+    Takes the same ``lines`` already read for the residual scan, so ``session.jsonl``
+    is read once per contribution, not twice. A resumed session can span a Claude
+    Code upgrade, so this is an array (SCHEMA.md "Why claude_code_versions is an
+    array"). Lines that do not parse as JSON are skipped for version extraction — the
+    residual scan ran over the raw bytes regardless, so a malformed line cannot
+    smuggle content past the gate; it just doesn't contribute a version. (A dict with
+    ``None`` values is an insertion-ordered set — keeps first-seen order, which the
+    manifest's ``uniqueItems`` array preserves.)
     """
     versions: dict[str, None] = {}
-    for line in session_path.read_text(encoding="utf-8").splitlines():
+    for line in lines:
         line = line.strip()
         if not line:
             continue
@@ -230,6 +244,37 @@ def _claude_code_versions_from_session(session_path: Path) -> list[str]:
             if isinstance(v, str) and v:
                 versions.setdefault(v, None)
     return list(versions)
+
+
+def _assemble_row(
+    *,
+    tier: str,
+    path: str,
+    contribution: dict,
+    versions: list[str],
+    verification: str,
+    extra: dict,
+) -> dict:
+    """Build the would-be manifest row from common + tier-specific fields, validate it.
+
+    The single assembly + schema-validation site for both tiers — and the single
+    injection point for ``contributed_at``, which is stubbed here only for shape
+    validation. When manifest generation lands (#10) it sets the real merge-commit
+    value in one place rather than in each tier validator.
+    """
+    row = {
+        "schema_version": "1",
+        "tier": tier,
+        "contributor_id": contribution["contributor_id"],
+        "path": path,
+        "contributed_at": CONTRIBUTED_AT_PLACEHOLDER,
+        "license": contribution["license"],
+        "claude_code_versions": versions,
+        "verification": verification,
+        **extra,
+    }
+    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, "derived manifest row")
+    return row
 
 
 def validate_full(contrib_dir: Path, cid_seg: str, hash_seg: str) -> dict:
@@ -251,7 +296,7 @@ def validate_full(contrib_dir: Path, cid_seg: str, hash_seg: str) -> dict:
     # parse/re-serialize round-trip, so the bytes scanned are exactly the bytes
     # committed (split on "\n" to mirror the sanitizer's per-line semantics).
     scan_residual, ResidualSecretError = load_residual_scanner()
-    lines = session.read_text(encoding="utf-8").split("\n")
+    lines = session.read_text(encoding="utf-8").split("\n")  # read once; reused below
     try:
         scan_residual(lines, [])
     except ResidualSecretError as exc:
@@ -289,27 +334,21 @@ def validate_full(contrib_dir: Path, cid_seg: str, hash_seg: str) -> dict:
             f"{sanitizer_version!r}"
         )
 
-    versions = _claude_code_versions_from_session(session)
+    versions = _claude_code_versions(lines)
     if not versions:
         raise ContributionError(
             "no Claude Code version found in session.jsonl (no top-level "
             "'version' field on any record)"
         )
 
-    row = {
-        "schema_version": "1",
-        "tier": "full",
-        "contributor_id": contribution["contributor_id"],
-        "path": f"corpus/{cid_seg}/{hash_seg}/",
-        "contributed_at": CONTRIBUTED_AT_PLACEHOLDER,
-        "license": contribution["license"],
-        "claude_code_versions": versions,
-        "verification": "ci-rescan",
-        "input_sha256": input_sha256,
-        "sanitizer_version": sanitizer_version,
-    }
-    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, "derived manifest row")
-    return row
+    return _assemble_row(
+        tier="full",
+        path=f"corpus/{cid_seg}/{hash_seg}/",
+        contribution=contribution,
+        versions=versions,
+        verification="ci-rescan",
+        extra={"input_sha256": input_sha256, "sanitizer_version": sanitizer_version},
+    )
 
 
 # --- Tier 2 (structural) ----------------------------------------------------
@@ -361,21 +400,14 @@ def validate_structural(contrib_dir: Path, cid_seg: str, hash_seg: str) -> dict:
     if not versions:
         raise ContributionError("scan.json 'versions' has no usable version keys")
 
-    row = {
-        "schema_version": "1",
-        "tier": "structural",
-        "contributor_id": contribution["contributor_id"],
-        "path": f"structural/{cid_seg}/{hash_seg}/",
-        "contributed_at": CONTRIBUTED_AT_PLACEHOLDER,
-        "license": contribution["license"],
-        "claude_code_versions": versions,
-        "verification": "version-attested",
-        "scan_id": scan_id,
-        "tool": tool,
-        "scan_version": scan_version,
-    }
-    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, "derived manifest row")
-    return row
+    return _assemble_row(
+        tier="structural",
+        path=f"structural/{cid_seg}/{hash_seg}/",
+        contribution=contribution,
+        versions=versions,
+        verification="version-attested",
+        extra={"scan_id": scan_id, "tool": tool, "scan_version": scan_version},
+    )
 
 
 # --- dispatch ---------------------------------------------------------------
@@ -403,7 +435,7 @@ def validate_contribution(contrib_dir: Path) -> dict:
     if not CONTRIBUTOR_ID_RE.match(cid_seg):
         raise ContributionError(
             f"contributor_id path segment {cid_seg!r} is not a valid handle "
-            r"(^[a-z0-9][a-z0-9-]{0,38}$)"
+            f"({CONTRIBUTOR_ID_RE.pattern})"
         )
     if not HEX64_RE.match(hash_seg):
         raise ContributionError(
