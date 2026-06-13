@@ -143,7 +143,7 @@ the kind of data. If a live credential leaked, **rotate it now** — CCDC cannot
 > deliberately conservative for a single-maintainer project.
 
 **Mechanics** — *what* removal does (documented tombstone vs. git-history rewrite, keyed on
-`input_sha256`) lives in the removal runbook, **[RUNBOOK.md](RUNBOOK.md)** (tracked in
+`input_sha256`) lives in the removal runbook, **[REMOVAL.md](REMOVAL.md)** (tracked in
 [#6](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/6); being
 finalized). The runbook is a committed doc, executable by someone who is not the maintainer —
 that is a hard requirement, not a convenience.
@@ -164,7 +164,7 @@ The mitigation is structural, not "the maintainer works harder":
 
 - **The corpus is fully reconstructable** from the manifest + sidecars — recoverable without
   the maintainer.
-- **The removal runbook is a committed doc** ([RUNBOOK.md](RUNBOOK.md)), not knowledge held in
+- **The removal runbook is a committed doc** ([REMOVAL.md](REMOVAL.md)), not knowledge held in
   one person's head.
 - **The mechanical CI gate**, not manual review, carries the trust load — so the gate keeps
   working whether or not the maintainer is watching a given PR.
@@ -191,7 +191,7 @@ deliberately hard to change; treat amendments to them as schema migrations, not 
 - [README.md](README.md) — what CCDC is and the cross-tier comparison.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — the contributor walkthrough and attestation *(being finalized)*.
 - [LAYOUT.md](LAYOUT.md) · [SCHEMA.md](SCHEMA.md) — locked per-contribution paths and field schemas.
-- [RUNBOOK.md](RUNBOOK.md) — removal mechanics *(being finalized,
+- [REMOVAL.md](REMOVAL.md) — removal mechanics *(being finalized,
   [#6](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/6))*.
 - [LICENSE](LICENSE) — the CCDC Data License, Version 1.0.
 - [`docs/prd-ccdc.md`](docs/prd-ccdc.md) · [`docs/roadmap-ccdc.md`](docs/roadmap-ccdc.md) —
