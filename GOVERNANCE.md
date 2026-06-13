@@ -189,7 +189,7 @@ deliberately hard to change; treat amendments to them as schema migrations, not 
 ## See also
 
 - [README.md](README.md) — what CCDC is and the cross-tier comparison.
-- [ATTESTATION.md](ATTESTATION.md) — what every contributor affirms *(v0 draft, pending sign-off)*.
+- [ATTESTATION.md](ATTESTATION.md) — what every contributor affirms.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — the contributor walkthrough *(being finalized)*.
 - [LAYOUT.md](LAYOUT.md) · [SCHEMA.md](SCHEMA.md) — locked per-contribution paths and field schemas.
 - [REMOVAL.md](REMOVAL.md) — removal mechanics *(being finalized,

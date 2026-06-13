@@ -4,17 +4,16 @@ What every contributor affirms when they submit data to CCDC. It is the human ba
 risks the mechanical gate **structurally cannot** catch (arbitrary PII, novel-format secrets,
 employer-owned content) — so it is a gate condition, not a formality.
 
-> ⏳ **v0 DRAFT — pending the maintainer's legal-wording sign-off
-> ([#9](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/9)).**
-> The *surface* this attestation must cover is settled (the due-diligence scan in
-> [`docs/research-governance-norms.md`](docs/research-governance-norms.md) §3). The exact
-> *wording below* is a proposal and is **not yet ratified** — it binds contributors, so it is
-> confirmed before the corpus opens. This is not legal advice.
+> **Status — v0.** This attestation is in force for the v0 corpus and binds every contribution
+> from the first. Its surface follows the due-diligence scan in
+> [`docs/research-governance-norms.md`](docs/research-governance-norms.md) §3. Changing it is
+> governed like any other change to the corpus's rules (see [GOVERNANCE.md](GOVERNANCE.md#changing-this-document)).
+> This is not legal advice.
 
 ## How you make this attestation
 
 You do **not** sign a separate document. You affirm this attestation, in full and by reference,
-through two committed, **retained** acts that travel with your contribution:
+through three committed, **retained** acts that travel with your contribution:
 
 1. **Your [`contribution.json`](SCHEMA.md#contributionjson)** — committed alongside your data —
    carries the machine-readable affirmation:
@@ -24,7 +23,12 @@ through two committed, **retained** acts that travel with your contribution:
      [§B](#b-right-to-contribute) below.
    - `"attestation": { "original_retained": true }` — you affirm
      [§C](#c-you-retain-the-original).
-2. **The contributor-attestation block in the [pull-request template](.github/PULL_REQUEST_TEMPLATE.md)**,
+2. **A signed-off commit.** Your contribution PR's commits carry a `Signed-off-by` trailer
+   (commit with `git commit -s`), tying this affirmation to your git identity at commit time.
+   This is a complementary, DCO-style layer over the retained `contribution.json`: the trailer
+   stays visible on the PR's commits even though a squash-merge collapses them into one on `main`,
+   so the durable per-contribution record remains `contribution.json`.
+3. **The contributor-attestation block in the [pull-request template](.github/PULL_REQUEST_TEMPLATE.md)**,
    which points back here and cannot be skipped for a contribution PR.
 
 This is deliberate. A bare checkbox with no audit trail "achieves next to nothing"

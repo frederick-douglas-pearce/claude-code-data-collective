@@ -35,6 +35,7 @@ your committed contribution.json is the retained, per-contribution record of thi
 - [ ] **N/A** — this is an infrastructure / docs PR, not a contribution.
 - [ ] I have read [`ATTESTATION.md`](../ATTESTATION.md) and **affirm it in full** for this contribution.
 - [ ] My `contribution.json` sets `license: "CCDC-1.0"`, `attestation.right_to_contribute: true`, and `attestation.original_retained: true` — the retained record of that affirmation.
+- [ ] My commits are **signed off** (`git commit -s`), so each carries a `Signed-off-by` trailer.
 
 ## Security review
 
