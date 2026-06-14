@@ -10,10 +10,11 @@ neither scales, generalizes, nor can be independently verified. CCDC turns "shar
 sanitized sessions" into a shared asset that tool builders and researchers can develop
 against, validate against, and compare against.
 
-> **Status — v0 scaffolding.** The repository skeleton, the locked
-> [file layout](LAYOUT.md), and the [corpus license](LICENSE) exist. The governance doc,
-> contributor attestation, CI re-scan gate, and seed corpus are still being finalized, so the
-> corpus is **not yet open for contributions** — see [Contributing](#contributing).
+> **Status — v0 scaffolding.** The repository skeleton, the locked [file layout](LAYOUT.md),
+> the [corpus license](LICENSE), the [governance doc](GOVERNANCE.md), the
+> [contributor attestation](ATTESTATION.md), the [CI re-scan gate](ci/README.md), and the
+> [contribution walkthrough](CONTRIBUTING.md) all exist. The corpus **formally opens for
+> external contributions** with the seed corpus and launch — see [Contributing](#contributing).
 
 ## Governance model
 
@@ -78,12 +79,15 @@ contributor, the trust asymmetry, and the build sequence — lives in `docs/`:
 
 ## Contributing
 
-**Not yet open.** The end-to-end contribution path, governance doc, contributor
-attestation, and the CI re-scan gate are being finalized. Once live, contributing will mean:
-sanitize (Tier 1) or scan (Tier 2) your sessions locally, open a pull request adding them
-under the conventions in [LAYOUT.md](LAYOUT.md), and pass maintainer review plus the CI
-gate. Contributors are expected to retain their original inputs so a contribution can be
-re-sanitized if the sanitizer's rules improve.
+The full walkthrough is in **[CONTRIBUTING.md](CONTRIBUTING.md)**: sanitize (Tier 1) or scan
+(Tier 2) your sessions locally, place them under the conventions in [LAYOUT.md](LAYOUT.md),
+affirm the [attestation](ATTESTATION.md), and open a pull request that passes maintainer
+review plus the [CI re-scan gate](ci/README.md). Contributors are expected to retain their
+original inputs so a contribution can be re-sanitized if the sanitizer's rules improve.
+
+The documented path, attestation, and gate are all live; the corpus **formally opens for
+external contributions** with the seed corpus and launch. Until then, [CONTRIBUTING.md](CONTRIBUTING.md)
+is the authoritative path and is exercised by the maintainer's own seed contributions.
 
 ## License
 
