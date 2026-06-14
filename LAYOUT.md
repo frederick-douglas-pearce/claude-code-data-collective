@@ -89,6 +89,14 @@ projects-root and a resumed session can span an upgrade), and every row carries 
 tell the tiers apart from the manifest alone. The schema is versioned (`schema_version`) so the
 structural-tier variant is additive, not a retrofit.
 
+Both halves of "generated and validated by CI" are now implemented: the PR re-scan gate
+**validates** the would-be row (issue #8, [`ci/validate_contribution.py`](ci/validate_contribution.py)),
+and a post-merge job **writes** it (issue #33, [`ci/generate_manifest.py`](ci/generate_manifest.py) +
+[`.github/workflows/manifest-generate.yml`](.github/workflows/manifest-generate.yml)) — re-deriving
+each row through the same validator and stamping the merge-commit `contributed_at` the PR could not
+supply. Generation is idempotent, append/sort-disciplined, and removal-safe (it never re-emits a
+tombstoned row — see [REMOVAL.md](REMOVAL.md)).
+
 The `manifest.jsonl` currently committed is an **empty placeholder** — no contributions have
 landed yet.
 
@@ -96,15 +104,6 @@ landed yet.
 
 Deferred on purpose, to avoid premature lock-in:
 
-- **`manifest.jsonl` generation.** The **CI re-scan gate is now implemented** (issue #8:
-  [`ci/validate_contribution.py`](ci/validate_contribution.py) +
-  [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)) — it
-  routes by path, re-derives every check, and validates the would-be row against the schema.
-  The `structural/README.md` / `.gitkeep` concern noted here is handled: the validator
-  classifies them as allowlisted non-contribution paths, and any file under a tier tree that is
-  *not* inside a `<contributor_id>/<sha256>/` contribution dir is a stray that fails the gate.
-  Still deferred to the contribution-path work (#10): *writing* `manifest.jsonl` rows, which
-  needs the merge-commit `contributed_at`. The gate is validate-only.
 - **`<contributor_id>` assignment** and the end-to-end contribution path — locked with the
   contribution-path work. (The `contributor_id` *format* is fixed in [SCHEMA.md](SCHEMA.md);
   only its assignment is deferred.)

@@ -6,7 +6,9 @@ PR. Manual maintainer review does not scale; this gate is the load-bearer.
 
 - [`validate_contribution.py`](validate_contribution.py) — the validator (library +
   CLI). Run by [`.github/workflows/contribution-gate.yml`](../.github/workflows/contribution-gate.yml).
-- [`requirements.txt`](requirements.txt) — pinned dependencies.
+- [`generate_manifest.py`](generate_manifest.py) — post-merge manifest row generation
+  (#33). Run by [`.github/workflows/manifest-generate.yml`](../.github/workflows/manifest-generate.yml).
+- [`requirements.txt`](requirements.txt) — pinned dependencies (shared by both).
 - [`tests/`](tests/) — the validator's own test suite, including the
   gate-of-the-gate (a planted fake secret that **must** fail).
 
@@ -36,8 +38,12 @@ In both tiers the gate assembles the *would-be* `manifest.jsonl` row from CI-der
 provenance and validates it against the locked
 [`schema/manifest-row.schema.json`](../schema/manifest-row.schema.json). It is
 **validate-only**: it does not write `manifest.jsonl`. Row *generation* needs the
-merge-commit date (`contributed_at`), which does not exist pre-merge, and lands with
-the contribution-path work (#10).
+merge-commit date (`contributed_at`), which does not exist pre-merge, so it runs in a
+separate **post-merge** job — [`generate_manifest.py`](generate_manifest.py) (#33),
+driven by [`.github/workflows/manifest-generate.yml`](../.github/workflows/manifest-generate.yml).
+It re-uses this validator to re-derive each newly-merged row, stamps each row's
+per-path merge-commit date, and commits the appended index back to `main`. See
+[Manifest generation](#manifest-generation) below.
 
 ## Dependencies (pinned, fail-closed)
 
@@ -68,3 +74,46 @@ A changed path under a tier tree that is **not** inside a well-formed
 `<contributor_id>/<sha256>/` contribution directory (and is not an allowlisted
 non-contribution file such as `structural/README.md`) is a **stray** and fails the
 gate — a contribution can never slip through as "nothing to validate".
+
+## Manifest generation
+
+[`generate_manifest.py`](generate_manifest.py) writes the index row the gate could
+only *validate*. It runs **post-merge** (push to `main`) because a row's
+`contributed_at` is the merge-commit date, which does not exist pre-merge. For each
+contribution the push touched it re-runs the gate's own `validate_contribution`
+(re-scan included — defense in depth), stamps each row's **per-path** add-commit date
+(`git log --diff-filter=A`, so a push batching several merges still dates each row to
+*its* merge), and appends to `manifest.jsonl`. The bot then commits the index back to
+`main`.
+
+Three properties keep that safe and quiet:
+
+- **Idempotent.** Existing rows are kept verbatim — a path already indexed is never
+  re-derived or moved — so a re-run never duplicates a row. Only absent paths are
+  added; the file is rewritten sorted by `path` so its content is a pure function of
+  the live corpus (the reason the index is CI-generated, never hand-edited).
+- **Removal-safe.** A row is emitted only for a directory that still exists *and*
+  whose content address is not in [`removals.jsonl`](../removals.jsonl) — so a
+  tombstone (REMOVAL.md §6A/§7) can never be resurrected, even by re-running an old
+  workflow over a pre-removal commit range.
+- **Drift-detected.** A scheduled `--check` run asserts every contribution on disk is
+  indexed (and vice-versa) and fails loudly on mismatch — the backstop for a
+  generation run that was skipped or whose commit-back was rejected.
+
+```bash
+# what would be indexed for a set of changed paths (no write)
+git diff --name-only <before> <after> \
+  | python3 ci/generate_manifest.py --changed-files - --dry-run
+
+# the drift check
+python3 ci/generate_manifest.py --check
+
+# the generation test suite
+python3 ci/tests/test_generate_manifest.py
+```
+
+> **Infra note.** The generation job pushes `manifest.jsonl` directly to `main` (the
+> index is CI-generated, never hand-edited; a PR-per-row would be pure churn). If
+> `main` has PR-required branch protection, the github-actions bot must be allowed to
+> push to it (or a dedicated token wired in), or the push is rejected and the index
+> silently stalls. The push step fails loudly, and the drift check is the backstop.

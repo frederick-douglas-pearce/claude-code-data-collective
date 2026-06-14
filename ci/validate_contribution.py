@@ -29,9 +29,11 @@ In both tiers the gate assembles the *would-be* `manifest.jsonl` row from
 CI-derived provenance and validates it against the locked
 `schema/manifest-row.schema.json`. This gate is **validate-only**: it does not
 write `manifest.jsonl`. Row *generation* needs the merge-commit date
-(`contributed_at`), which does not exist pre-merge, and lands with the
-contribution-path work (#10). `CONTRIBUTED_AT_PLACEHOLDER` is injected only so the
-row can be shape-checked here; the real value is a merge-time concern.
+(`contributed_at`), which does not exist pre-merge, so it runs in a separate
+post-merge job — `ci/generate_manifest.py` (#33), which re-uses this module's
+`validate_contribution` to re-derive each row and only then stamps the real merge
+date. `CONTRIBUTED_AT_PLACEHOLDER` is injected only so the row can be shape-checked
+here; the real value is that merge-time concern.
 
 Tier is routed by **path**, never by a contributor-controlled field (LAYOUT.md):
 `corpus/<contributor_id>/<input_sha256>/` → full; `structural/<contributor_id>/
@@ -89,8 +91,8 @@ SEMVER_PREFIX_RE = re.compile(r"^\d+\.\d+(\.\d+)?([-+.][0-9A-Za-z.-]+)?$")
 # contributed_at is derived from the merge commit (SCHEMA.md) and does not exist in
 # a pre-merge PR. It is stubbed ONLY so the assembled row can be validated for shape
 # against manifest-row.schema.json. The real value is set when the manifest row is
-# generated at merge time (#10). The gate must not let this stub stand in for a real
-# provenance check — it validates everything else.
+# generated at merge time (ci/generate_manifest.py, #33). The gate must not let this
+# stub stand in for a real provenance check — it validates everything else.
 CONTRIBUTED_AT_PLACEHOLDER = "1970-01-01T00:00:00Z"
 
 # Allowlisted scanner for the structural tier — the (tool, scan_version) attestation
@@ -194,6 +196,17 @@ def _jsonschema_validate(instance: Any, schema_path: Path, what: str) -> None:
         )
 
 
+def validate_manifest_row(row: Any, what: str = "manifest row") -> None:
+    """Validate a manifest row against the locked ``manifest-row.schema.json``.
+
+    The public seam onto the row schema: manifest generation
+    (``ci/generate_manifest.py``, #33) re-uses this instead of reaching into the
+    private validator, so the gate and the generator check rows against the one
+    schema through one entry point.
+    """
+    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, what)
+
+
 # --- contribution.json (shared across tiers) --------------------------------
 
 
@@ -259,8 +272,9 @@ def _assemble_row(
 
     The single assembly + schema-validation site for both tiers — and the single
     injection point for ``contributed_at``, which is stubbed here only for shape
-    validation. When manifest generation lands (#10) it sets the real merge-commit
-    value in one place rather than in each tier validator.
+    validation. Manifest generation (ci/generate_manifest.py, #33) re-runs this code
+    path post-merge and swaps the stub for the real merge-commit value in one place
+    rather than in each tier validator.
     """
     row = {
         "schema_version": "1",
@@ -273,7 +287,7 @@ def _assemble_row(
         "verification": verification,
         **extra,
     }
-    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, "derived manifest row")
+    validate_manifest_row(row, "derived manifest row")
     return row
 
 

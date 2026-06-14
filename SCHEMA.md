@@ -181,17 +181,28 @@ are operational (v0), and the schema's dependencies on them are now satisfied:
   Tier 1 fields; opening `corpus/` is gated only on CCDC's own CI re-scan gate, not on
   upstream tooling.
 
+## Manifest generation
+
+Both halves of the manifest's "CI-generated and validated" contract are now built:
+
+- **Validation** — the PR re-scan gate (issue #8:
+  [`ci/validate_contribution.py`](ci/validate_contribution.py) +
+  [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)) routes by
+  path, re-derives every check (never trusting the sidecar), and **validates** the would-be row
+  against [`schema/manifest-row.schema.json`](schema/manifest-row.schema.json).
+- **Generation** — a post-merge job (issue #33:
+  [`ci/generate_manifest.py`](ci/generate_manifest.py) +
+  [`.github/workflows/manifest-generate.yml`](.github/workflows/manifest-generate.yml)) re-runs that
+  same validator on each newly-merged contribution and **writes** the row, stamping the
+  `contributed_at` the PR could not supply (the merge-commit date, derived per-path from the commit
+  that added the directory). It is idempotent (one row per `path`, existing rows never moved),
+  rewrites the file sorted by `path` to stay conflict-free, and never re-emits a row whose directory
+  is gone or whose content address is in [`removals.jsonl`](removals.jsonl) — so a tombstone
+  ([REMOVAL.md](REMOVAL.md)) is never resurrected.
+
 ## Still deferred
 
 Locked separately, outside this document:
 
 - **`<contributor_id>` assignment** — the *format* is locked here (`^[a-z0-9][a-z0-9-]{0,38}$`);
   *how* a contributor is assigned one is part of the contribution-path work.
-- **Manifest `manifest.jsonl` generation** — the CI **re-scan gate is now implemented**
-  (issue #8: [`ci/validate_contribution.py`](ci/validate_contribution.py) +
-  [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)). It
-  routes by path, re-derives every check (never trusting the sidecar), and **validates** the
-  would-be row against [`schema/manifest-row.schema.json`](schema/manifest-row.schema.json) —
-  these schemas are the contract it builds against. The gate is **validate-only**: it does not
-  *write* `manifest.jsonl`. Row generation needs the merge-commit `contributed_at` (which does
-  not exist pre-merge), so it lands with the contribution-path work (#10).
