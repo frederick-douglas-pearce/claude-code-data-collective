@@ -6,11 +6,20 @@ PR. Manual maintainer review does not scale; this gate is the load-bearer.
 
 - [`validate_contribution.py`](validate_contribution.py) — the validator (library +
   CLI). Run by [`.github/workflows/contribution-gate.yml`](../.github/workflows/contribution-gate.yml).
+- [`check_signoff.py`](check_signoff.py) — the sign-off gate (#31): fails a
+  contribution PR whose commits lack a `Signed-off-by` trailer. Pure stdlib (+ git);
+  also run by the contribution-gate workflow. See [Sign-off gate](#sign-off-gate).
+- [`contribution_paths.py`](contribution_paths.py) — pure-stdlib path router
+  (`classify_changed_paths` + the tier/allowlist/segment rules), the **single source
+  of truth** for "what is a contribution", imported by both the validator and the
+  sign-off gate so they cannot disagree.
 - [`generate_manifest.py`](generate_manifest.py) — post-merge manifest row generation
   (#33). Run by [`.github/workflows/manifest-generate.yml`](../.github/workflows/manifest-generate.yml).
-- [`requirements.txt`](requirements.txt) — pinned dependencies (shared by both).
+- [`requirements.txt`](requirements.txt) — pinned dependencies (the validator + manifest
+  generation; the sign-off gate needs none of them).
 - [`tests/`](tests/) — the validator's own test suite, including the
-  gate-of-the-gate (a planted fake secret that **must** fail).
+  gate-of-the-gate (a planted fake secret that **must** fail), plus the manifest and
+  sign-off suites.
 
 ## The one rule
 
@@ -74,6 +83,32 @@ A changed path under a tier tree that is **not** inside a well-formed
 `<contributor_id>/<sha256>/` contribution directory (and is not an allowlisted
 non-contribution file such as `structural/README.md`) is a **stray** and fails the
 gate — a contribution can never slip through as "nothing to validate".
+
+## Sign-off gate
+
+[`check_signoff.py`](check_signoff.py) (#31) makes the `git commit -s` layer of the
+[attestation](../ATTESTATION.md) **load-bearing**: a contribution PR whose commits lack
+a `Signed-off-by` trailer fails CI. It is deliberately **not** the stock DCO App (which
+requires sign-off on *every* PR and would clash with the infra/docs "N/A" escape) — it
+is path-scoped to contributions, routing on the *same* `classify_changed_paths` the
+re-scan uses, so the two checks agree by construction. A PR requiring sign-off is one
+that yields a contribution dir **or a stray** (a malformed contribution attempt is still
+a contribution PR); infra/docs PRs touching no contribution path are exempt.
+
+The trailer is checked on the PR's own commits, anchored on the merge-base so a stale
+base (main moved on) can't drag in commits the contributor didn't author. Merge commits
+are exempt (DCO convention). The check is pure stdlib — its CI job skips
+`requirements.txt`.
+
+```bash
+# the way CI drives it
+git diff --name-only origin/main...HEAD > changed.txt
+python3 ci/check_signoff.py --changed-files changed.txt \
+  --base origin/main --head HEAD
+
+# the test suite (pure stdlib + git; no requirements.txt needed)
+python3 ci/tests/test_check_signoff.py
+```
 
 ## Manifest generation
 

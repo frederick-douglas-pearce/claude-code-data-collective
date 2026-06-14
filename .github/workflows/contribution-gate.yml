@@ -5,10 +5,15 @@ name: Contribution gate
 # gate re-derives the security checks on every contribution PR and NEVER trusts the
 # contributor's .scrubbed sidecar. See ci/validate_contribution.py for the full model.
 #
-# Two jobs:
+# Three jobs:
 #   - gate:     re-scans + validates the contribution dirs a PR actually touches.
-#   - selftest: runs the validator + manifest-generation test suites so the CI tooling
-#               cannot regress (generation re-uses the validator, #33).
+#   - signoff:  fails a CONTRIBUTION PR whose commits lack a `Signed-off-by` trailer
+#               (#31), making ATTESTATION.md's `git commit -s` layer load-bearing.
+#               Path-scoped via the SAME router as the gate (no DCO App: infra/docs
+#               PRs are exempt, mirroring the PR template's N/A escape). Dependency-
+#               free — it does not install ci/requirements.txt.
+#   - selftest: runs the validator + manifest-generation + sign-off test suites so
+#               the CI tooling cannot regress (generation re-uses the validator, #33).
 #
 # Triggered on changes to either tier tree OR to the gate's own code/schema, so a PR
 # that edits the validator or a schema is itself validated. A PR that touches a tier
@@ -45,6 +50,8 @@ jobs:
         run: python3 ci/tests/test_validate_contribution.py
       - name: Run manifest-generation test suite
         run: python3 ci/tests/test_generate_manifest.py
+      - name: Run sign-off gate test suite
+        run: python3 ci/tests/test_check_signoff.py
 
   gate:
     name: Re-scan contributions
@@ -69,3 +76,35 @@ jobs:
         run: git diff --name-only "$BASE...$HEAD" > changed-files.txt
       - name: Re-scan + validate touched contributions
         run: python3 ci/validate_contribution.py --changed-files changed-files.txt
+
+  signoff:
+    name: Require Signed-off-by on contributions
+    # Only PRs carry commits to check; #31. No pip install — check_signoff.py is
+    # pure stdlib (+ git), so this job stays fast and dependency-light.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the merge-base anchor below resolves the PR's own commits.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compute changed files
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        # Three-dot diff (merge-base..HEAD) = exactly what this PR changes; same form
+        # as the gate, so sign-off routes on the identical input.
+        run: git diff --name-only "$BASE...$HEAD" > changed-files.txt
+      - name: Enforce sign-off on contribution PR commits
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        # No-op for infra/docs PRs (the script exits 0 when no contribution paths
+        # are touched); fails a contribution PR whose commits miss the trailer.
+        run: >-
+          python3 ci/check_signoff.py
+          --changed-files changed-files.txt
+          --base "$BASE" --head "$HEAD"

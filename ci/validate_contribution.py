@@ -53,35 +53,29 @@ import json
 import re
 import sys
 from functools import lru_cache
-from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
+from pathlib import Path
+from typing import Any
 
 import yaml
+
+# Path-based contribution routing (TIERS, the non-contribution allowlist, the path
+# segment regexes, and classify_changed_paths) lives in a pure-stdlib sibling module
+# so the gate AND the lightweight sign-off check (check_signoff.py, #31) share one
+# source of truth for "what is a contribution". Re-exported here for callers and the
+# existing test suite that reference them via this module.
+from contribution_paths import (  # noqa: F401
+    CONTRIBUTOR_ID_RE,
+    HEX64_RE,
+    NON_CONTRIBUTION_PATHS,
+    TIERS,
+    classify_changed_paths,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = REPO_ROOT / "schema"
 CONTRIBUTION_SCHEMA_PATH = SCHEMA_DIR / "contribution.schema.json"
 MANIFEST_ROW_SCHEMA_PATH = SCHEMA_DIR / "manifest-row.schema.json"
 
-# Tiers are top-level trees; the tier is decided by the path, not a field.
-TIERS = ("corpus", "structural")
-
-# Paths under a tier tree that are NOT contributions: the tier doc and the
-# placeholder keepers. A PR that only touches these is a legitimate docs change,
-# not a contribution — the gate passes it without finding a contribution dir.
-# Anything else under a tier tree that is not inside a <cid>/<sha256>/ dir is a
-# stray (a contribution at the wrong depth, a misplaced file) and FAILS.
-NON_CONTRIBUTION_PATHS = frozenset(
-    {
-        "structural/README.md",
-        "corpus/.gitkeep",
-        "structural/.gitkeep",
-    }
-)
-
-# Mirrors the contributor_id format locked in SCHEMA.md / the JSON Schemas.
-CONTRIBUTOR_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,38}$")
-HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 # "recognized" sanitizer_version (criterion 3): present, non-empty, version-shaped.
 # A hard allowlist of accepted sanitizer versions is deferred (SCHEMA.md) — this is
 # a completeness check on a field the sidecar was never trusted for, not a trust
@@ -459,51 +453,6 @@ def validate_contribution(contrib_dir: Path) -> dict:
     if tier_seg == "corpus":
         return validate_full(contrib_dir, cid_seg, hash_seg)
     return validate_structural(contrib_dir, cid_seg, hash_seg)
-
-
-# --- changed-path discovery (drives the PR gate) ----------------------------
-
-
-def classify_changed_paths(paths: Iterable[str]) -> tuple[list[str], list[str]]:
-    """Map changed repo paths to contribution dirs; flag strays.
-
-    Returns ``(contribution_dirs, strays)`` where ``contribution_dirs`` is the
-    sorted, de-duplicated set of ``<tier>/<cid>/<hash>`` prefixes touched, and
-    ``strays`` are changed paths under a tier tree that are neither an allowlisted
-    non-contribution file nor a member of a well-formed contribution dir.
-
-    This is the anti-silent-bypass check: a PR that triggers the gate (it touched a
-    tier tree) but yields zero contribution dirs is fine ONLY if every touched path
-    is allowlisted (a docs/keepalive change). A contribution file at the wrong depth
-    or with malformed path segments is a stray and FAILS the gate — it can never
-    slip through as "nothing to validate".
-    """
-    contribution_dirs: set[str] = set()
-    strays: list[str] = []
-    for raw in paths:
-        p = raw.strip()
-        if not p:
-            continue
-        parts = PurePosixPath(p).parts
-        if not parts or parts[0] not in TIERS:
-            continue  # outside both tier trees — not this gate's concern
-        if p in NON_CONTRIBUTION_PATHS:
-            continue  # allowlisted docs / keepalive
-        if len(parts) < 4:
-            strays.append(
-                f"{p}: under {parts[0]}/ but not inside a "
-                "<contributor_id>/<sha256>/ contribution directory"
-            )
-            continue
-        tier, cid, h = parts[0], parts[1], parts[2]
-        if not CONTRIBUTOR_ID_RE.match(cid) or not HEX64_RE.match(h):
-            strays.append(
-                f"{p}: contribution path segments do not match "
-                "<contributor_id>/<sha256>"
-            )
-            continue
-        contribution_dirs.add(f"{tier}/{cid}/{h}")
-    return sorted(contribution_dirs), strays
 
 
 # --- CLI --------------------------------------------------------------------
