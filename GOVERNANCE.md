@@ -68,6 +68,15 @@ Every PR passes through two layers. The mechanical layer is the load-bearing tru
   `scan_version` + `claude_code_version`, not re-scanned.** This is a real, accepted downgrade
   from Tier 1's gate — structural output is zero-leak by construction regardless of trust — and
   it is visible to consumers from the path (`structural/` vs. `corpus/`) and the manifest.
+- **Sign-off enforcement (contributions).** The same gate workflow fails a contribution
+  PR (one touching `corpus/` or `structural/`) if any of the PR's commits lacks a
+  `Signed-off-by` trailer ([`ci/check_signoff.py`](ci/check_signoff.py)), making the
+  `git commit -s` layer of the [attestation](ATTESTATION.md) load-bearing rather than
+  advisory. It is **path-scoped to contributions** — infra/docs PRs are exempt,
+  mirroring the PR template's "N/A" escape — and routes on the *same* path classifier as
+  the re-scan, so the two cannot disagree about what is a contribution. The trailer is
+  checked on the PR's own commits; a squash-merge may collapse it on `main`, which is
+  expected (the durable per-contribution record is `contribution.json`).
 - **Maintainer review.** The maintainer confirms tier placement, manifest completeness,
   attestation, and overall fit, and merges. Critically, the maintainer also **reads the diff
   for what the mechanical gate structurally cannot catch** (see the coverage boundary below) —
