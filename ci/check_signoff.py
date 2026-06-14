@@ -32,6 +32,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Iterable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -52,7 +53,7 @@ def has_signoff(message: str) -> bool:
     return SIGNOFF_RE.search(message) is not None
 
 
-def is_contribution_pr(changed_paths) -> bool:
+def is_contribution_pr(changed_paths: Iterable[str]) -> bool:
     """True if the changed paths constitute a contribution (requires sign-off).
 
     Routes identically to the re-scan gate: any contribution dir OR any stray under
@@ -86,22 +87,18 @@ def pr_commits(base: str, head: str, repo: str | None = None) -> list[str]:
     return [line.strip() for line in out.splitlines() if line.strip()]
 
 
-def commit_message(sha: str, repo: str | None = None) -> str:
-    return _git(["log", "-1", "--format=%B", sha], repo=repo)
-
-
-def commit_subject(sha: str, repo: str | None = None) -> str:
-    return _git(["log", "-1", "--format=%s", sha], repo=repo).strip()
-
-
 def unsigned_commits(
     base: str, head: str, repo: str | None = None
 ) -> list[tuple[str, str]]:
     """``(sha, subject)`` for every PR commit missing a ``Signed-off-by`` trailer."""
     bad: list[tuple[str, str]] = []
     for sha in pr_commits(base, head, repo=repo):
-        if not has_signoff(commit_message(sha, repo=repo)):
-            bad.append((sha, commit_subject(sha, repo=repo)))
+        # %B is the raw commit body; its first line is the subject, so a single
+        # log call serves both the trailer check and the display subject.
+        message = _git(["log", "-1", "--format=%B", sha], repo=repo)
+        if not has_signoff(message):
+            lines = message.strip().splitlines()
+            bad.append((sha, lines[0] if lines else ""))
     return bad
 
 

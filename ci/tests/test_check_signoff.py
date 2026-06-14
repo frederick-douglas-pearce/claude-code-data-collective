@@ -14,7 +14,6 @@ construction; nothing is committed to the repo under test.
 
 from __future__ import annotations
 
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -92,20 +91,13 @@ class _Repo:
         self._git("config", "commit.gpgsign", "false")
 
     def _git(self, *args: str) -> str:
-        return subprocess.run(
-            ["git", "-C", str(self.path), *args],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout
+        # Drive the module's own git wrapper so the tests exercise the real helper.
+        return cs._git(list(args), repo=str(self.path))
 
     def commit(self, msg: str, signoff: bool = False, fname: str = "f") -> str:
         (self.path / fname).write_text(msg, encoding="utf-8")
         self._git("add", "-A")
-        args = ["commit", "-q", "-m", msg]
-        if signoff:
-            args.insert(2, "-s")
-        self._git(*args)
+        self._git("commit", "-q", *(["-s"] if signoff else []), "-m", msg)
         return self._git("rev-parse", "HEAD").strip()
 
     def merge_unsigned(self, branch: str) -> None:
