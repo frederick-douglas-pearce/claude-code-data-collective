@@ -81,11 +81,15 @@ class GenerationError(Exception):
 # --- ledger / manifest IO ---------------------------------------------------
 
 
-def load_manifest(path: Path) -> list[dict]:
-    """Read existing rows from a JSONL manifest (missing/empty file → no rows)."""
+def _iter_jsonl(path: Path):
+    """Yield ``(lineno, obj)`` for each non-blank line of a JSONL file.
+
+    Shared by the manifest and removals-ledger loaders so both parse identically and
+    only their per-row checks differ. A missing file yields nothing; a line that does
+    not parse as JSON fails closed.
+    """
     if not path.exists():
-        return []
-    rows: list[dict] = []
+        return
     for lineno, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         line = raw.strip()
         if not line:
@@ -96,6 +100,13 @@ def load_manifest(path: Path) -> list[dict]:
             raise GenerationError(
                 f"{path.name} line {lineno} is not valid JSON: {exc}"
             ) from exc
+        yield lineno, obj
+
+
+def load_manifest(path: Path) -> list[dict]:
+    """Read existing rows from a JSONL manifest (missing/empty file → no rows)."""
+    rows: list[dict] = []
+    for lineno, obj in _iter_jsonl(path):
         if not isinstance(obj, dict) or "path" not in obj:
             raise GenerationError(
                 f"{path.name} line {lineno} is not a manifest row (no 'path')"
@@ -112,19 +123,8 @@ def load_removed_addresses(path: Path) -> set[str]:
     re-emit a removed row — the resurrection guard, paired with the dir-existence
     check. A missing/empty ledger means nothing has been removed.
     """
-    if not path.exists():
-        return set()
     addrs: set[str] = set()
-    for lineno, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line:
-            continue
-        try:
-            obj = json.loads(line)
-        except (json.JSONDecodeError, ValueError) as exc:
-            raise GenerationError(
-                f"{path.name} line {lineno} is not valid JSON: {exc}"
-            ) from exc
+    for lineno, obj in _iter_jsonl(path):
         if not isinstance(obj, dict):
             raise GenerationError(f"{path.name} line {lineno} is not a JSON object")
         for key in ("input_sha256", "scan_id"):
@@ -193,8 +193,9 @@ def derive_rows(
     case, where the tombstone deleted it — or when its content address is in the
     removals ledger. Every surviving dir is run back through the gate's
     ``validate_contribution`` (re-scan included); the per-path ``contributed_at``
-    replaces the placeholder, and the completed row is re-validated against the schema
-    so a malformed timestamp fails closed.
+    replaces the placeholder. The stamped rows are schema-validated once, alongside
+    the existing ones, in :func:`merge_rows` before the file is written — so a bad
+    merge date fails closed there.
     """
     rows: list[dict] = []
     for d in contrib_dirs:
@@ -207,11 +208,6 @@ def derive_rows(
             # Tombstoned — its data is gone; never re-emit the row (REMOVAL.md §7).
             continue
         row["contributed_at"] = contributed_at_for(row["path"])
-        # Re-validate now that the real timestamp is in place (the gate validated it
-        # with the placeholder); a bad merge date must fail, not be written.
-        vc._jsonschema_validate(
-            row, vc.MANIFEST_ROW_SCHEMA_PATH, "generated manifest row"
-        )
         rows.append(row)
     return rows
 
@@ -232,7 +228,7 @@ def merge_rows(existing: list[dict], new: list[dict]) -> list[dict]:
         by_path.setdefault(row["path"], row)  # never overwrite an indexed path
     merged = [by_path[p] for p in sorted(by_path)]
     for row in merged:
-        vc._jsonschema_validate(row, vc.MANIFEST_ROW_SCHEMA_PATH, "manifest row")
+        vc.validate_manifest_row(row)
     return merged
 
 

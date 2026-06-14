@@ -196,6 +196,17 @@ def _jsonschema_validate(instance: Any, schema_path: Path, what: str) -> None:
         )
 
 
+def validate_manifest_row(row: Any, what: str = "manifest row") -> None:
+    """Validate a manifest row against the locked ``manifest-row.schema.json``.
+
+    The public seam onto the row schema: manifest generation
+    (``ci/generate_manifest.py``, #33) re-uses this instead of reaching into the
+    private validator, so the gate and the generator check rows against the one
+    schema through one entry point.
+    """
+    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, what)
+
+
 # --- contribution.json (shared across tiers) --------------------------------
 
 
@@ -276,7 +287,7 @@ def _assemble_row(
         "verification": verification,
         **extra,
     }
-    _jsonschema_validate(row, MANIFEST_ROW_SCHEMA_PATH, "derived manifest row")
+    validate_manifest_row(row, "derived manifest row")
     return row
 
 
