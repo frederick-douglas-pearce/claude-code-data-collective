@@ -7,7 +7,8 @@ name: Contribution gate
 #
 # Two jobs:
 #   - gate:     re-scans + validates the contribution dirs a PR actually touches.
-#   - selftest: runs the validator's own test suite so the gate cannot regress.
+#   - selftest: runs the validator + manifest-generation test suites so the CI tooling
+#               cannot regress (generation re-uses the validator, #33).
 #
 # Triggered on changes to either tier tree OR to the gate's own code/schema, so a PR
 # that edits the validator or a schema is itself validated. A PR that touches a tier
@@ -42,6 +43,8 @@ jobs:
         run: pip install -r ci/requirements.txt
       - name: Run validator test suite
         run: python3 ci/tests/test_validate_contribution.py
+      - name: Run manifest-generation test suite
+        run: python3 ci/tests/test_generate_manifest.py
 
   gate:
     name: Re-scan contributions

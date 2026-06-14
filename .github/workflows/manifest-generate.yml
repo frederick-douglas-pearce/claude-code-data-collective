@@ -1,0 +1,106 @@
+name: Generate manifest rows
+
+# Post-merge manifest generation (issue #33). The PR contribution gate
+# (contribution-gate.yml / ci/validate_contribution.py) is validate-only: it
+# re-derives the would-be manifest row but cannot write it, because a row's
+# `contributed_at` is the MERGE-COMMIT date, which does not exist pre-merge. This
+# workflow runs AFTER merge, on push to main, and writes the row.
+#
+#   generate:    on push to main touching a tier tree — re-validate each newly-merged
+#                contribution through the gate's own code path, stamp each row's
+#                per-path merge-commit date, and commit the appended manifest back.
+#   drift-check: scheduled safety net — assert every contribution on disk is indexed
+#                (catches a generate run that was skipped or whose push was rejected).
+#
+# The trigger excludes manifest.jsonl on purpose: the bot's manifest-only commit must
+# not re-trigger this workflow (loop break). `concurrency` serializes pushes so two
+# merges never race on the index.
+#
+# ── INFRA PREREQUISITE (branch protection) ──────────────────────────────────────────
+# The generate job pushes manifest.jsonl directly to main (the index is CI-generated
+# and never hand-edited — LAYOUT.md; a PR-per-row would be pure churn and contradicts
+# the anti-merge-conflict rationale). If main has PR-required branch protection, the
+# default GITHUB_TOKEN push is REJECTED and the manifest silently stops updating. Allow
+# the github-actions bot to push to main (branch-protection bypass for the app) or wire
+# a dedicated token here. The push step is fail-loud: a rejected push fails the job
+# rather than leaving a stale index unnoticed; drift-check is the backstop that surfaces
+# it if it ever slips.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "corpus/**"
+      - "structural/**"
+  schedule:
+    # Weekly drift check (Mondays 06:00 UTC) — detection only, never heals.
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+concurrency:
+  group: manifest-generate
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    name: Generate + commit manifest rows
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the per-path `git log --diff-filter=A` add-commit lookup
+          # and the push-range diff both resolve.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: pip install -r ci/requirements.txt
+      - name: Compute changed files in this push
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        # Three-dot is wrong here (we want what the push added, not vs. merge-base).
+        # `before` is all-zeros for a brand-new branch's first push — fall back to the
+        # empty tree so every path reads as added.
+        run: |
+          set -euo pipefail
+          if [ -z "${BEFORE}" ] || [ "${BEFORE}" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="$(git hash-object -t tree /dev/null)"
+          fi
+          git diff --name-only "${BEFORE}" "${AFTER}" > changed-files.txt
+          echo "Changed files in push:"; cat changed-files.txt
+      - name: Generate manifest rows
+        run: python3 ci/generate_manifest.py --changed-files changed-files.txt
+      - name: Commit manifest if changed
+        # Stage ONLY manifest.jsonl — this write-path bypasses the contribution gate
+        # ([skip ci], push not PR), so it must never carry anything else to main.
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- manifest.jsonl; then
+            echo "manifest.jsonl unchanged; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.jsonl
+          git commit -m "chore(ci): index merged contribution(s) in manifest.jsonl [skip ci]"
+          # Fail loud if the push is rejected (e.g. branch protection) — never swallow it.
+          git push origin HEAD:main
+
+  drift-check:
+    name: Manifest drift check
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: pip install -r ci/requirements.txt
+      - name: Assert manifest is in sync with the corpus on disk
+        run: python3 ci/generate_manifest.py --check
