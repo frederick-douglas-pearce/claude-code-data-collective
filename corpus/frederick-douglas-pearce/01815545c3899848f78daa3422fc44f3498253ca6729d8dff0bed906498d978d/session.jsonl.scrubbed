@@ -1,0 +1,66 @@
+sanitizer_version: 0.2.0
+scrubbed_at: '2026-06-15T09:42:40Z'
+input_filename: b256d48a-0573-4d5a-965b-88d958505249.jsonl
+input_sha256: 01815545c3899848f78daa3422fc44f3498253ca6729d8dff0bed906498d978d
+config_version: 1
+config_source: .ccs-sanitize.yaml
+lines_processed: 573
+stripped_lines:
+  file-history-snapshot: 19
+  attachment: 29
+rules_applied:
+  paths:
+    substitutions: 583
+    distinct: 1
+  identifiers:
+    substitutions: 934
+    distinct: 10
+  secrets:
+    matches: 0
+  jitter: disabled
+substitutions:
+- rule: paths
+  placeholder: <path-1>
+  replacement: /home/user
+  occurrences: 583
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 122
+- rule: identifiers
+  placeholder: <identifier-1>
+  replacement: user
+  occurrences: 70
+- rule: identifiers
+  placeholder: <identifier-2>
+  replacement: real-user
+  occurrences: 466
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 78
+- rule: identifiers
+  placeholder: <identifier-3>
+  replacement: user@example.com
+  occurrences: 2
+- rule: identifiers
+  placeholder: <identifier-4>
+  replacement: Real Name
+  occurrences: 4
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 45
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 17
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 87
+- rule: identifiers
+  placeholder: <git-branch>
+  replacement: feature/example
+  occurrences: 43
+residual_scan: clean
