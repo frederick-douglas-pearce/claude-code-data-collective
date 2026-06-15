@@ -76,6 +76,8 @@ contributor, the trust asymmetry, and the build sequence — lives in `docs/`:
   contribution tiers, decisions-to-lock, dependency graph, and ship gate.
 - **[`docs/roadmap-ccdc.md`](docs/roadmap-ccdc.md)** — the now / next / then sequencing view:
   where to start and what's blocked by what.
+- **[`docs/glossary.md`](docs/glossary.md)** — the recurring governance/licensing/tooling terms
+  of art (DCO vs. CLA, Inputs/Outputs/Results, tombstone, version-attested), defined once.
 
 ## Contributing
 

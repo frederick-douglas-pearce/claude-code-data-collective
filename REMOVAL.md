@@ -230,3 +230,5 @@ from their retained original and re-contribute.
 - [LAYOUT.md](LAYOUT.md) · [SCHEMA.md](SCHEMA.md) — content-addressed paths and the locked manifest schema.
 - [`docs/research-governance-norms.md`](docs/research-governance-norms.md) §2 — the comparable-dataset
   takedown norms (The Stack opt-out, Re-LAION, GitHub history guidance) behind these mechanics.
+- [`docs/glossary.md`](docs/glossary.md) — definitions of the terms of art used here (tombstone vs.
+  history rewrite, prospective removal, disclosure event, leak report vs. removal request).
