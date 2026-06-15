@@ -138,11 +138,17 @@ The sanitizer scrubs secrets and identifiers; it is **not** a meaning-scrubber, 
 or personal content can survive in prose. A removal path is therefore a day-one promise, not a
 later feature.
 
-**Report a leak / request removal:** open a
-[leak-or-removal issue](.github/ISSUE_TEMPLATE/leak_or_removal.yml). Anyone may file — you do
-not need to be the contributor. **Do not paste the secret or PII into the issue** (it is
-public); point to *where* it is by file path and/or `input_sha256` / `scan_id` and *describe*
-the kind of data. If a live credential leaked, **rotate it now** — CCDC cannot rotate it for you.
+**Report a leak / request removal:** anyone may file — you do not need to be the contributor.
+- **Privately** (preferred for anything sensitive): use the **"Report a vulnerability"** button on
+  the repository's [Security tab](https://github.com/frederick-douglas-pearce/claude-code-data-collective/security/advisories/new)
+  (GitHub Private Vulnerability Reporting). See [SECURITY.md](SECURITY.md) for what to include. Use
+  this whenever the location itself is identifying or you are unsure how to redact.
+- **Publicly**: open a [leak-or-removal issue](.github/ISSUE_TEMPLATE/leak_or_removal.yml) — the right
+  channel for a routine removal request for your own data, or any report you can describe safely.
+
+Either way, **do not paste the secret or PII** — point to *where* it is by file path and/or
+`input_sha256` / `scan_id` and *describe* the kind of data. If a live credential leaked, **rotate it
+now** — CCDC cannot rotate it for you.
 
 **Service levels** (calendar time from when a report is filed):
 
