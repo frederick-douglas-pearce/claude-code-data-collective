@@ -58,8 +58,11 @@ This repo's CI re-scan merge gate ([`ci/validate_contribution.py`](ci/validate_c
 run by [`.github/workflows/contribution-gate.yml`](.github/workflows/contribution-gate.yml)) re-derives
 the secret scan from every submitted `corpus/` file — re-running the upstream sanitizer's *own*
 residual scan, never trusting the `.scrubbed` sidecar — and is the load-bearing trust mechanism;
-manual review does not scale. It is validate-only (it does not yet write `manifest.jsonl`; that lands
-with the contribution path, #10).
+manual review does not scale. It is enforced as a **required status check** on `main` (via the
+always-on `gate-summary` aggregator, #39), so a PR with a red or missing gate cannot merge. The PR
+gate is validate-only by design: `manifest.jsonl` rows are written *after* merge by a separate
+workflow ([`.github/workflows/manifest-generate.yml`](.github/workflows/manifest-generate.yml), #33),
+because a row's `contributed_at` is the merge-commit date.
 
 ## Conventions
 
@@ -134,8 +137,11 @@ The `.claude/hooks/` here were ported from that repo and adapted (raw-session bl
 
 ## Status
 
-**v0 scaffolding — not yet open for contributions.** The repo skeleton, locked layout, the Tier 2
-tier doc, the design docs, the security hooks, the license, the locked manifest/contribution schema,
-and the CI re-scan merge gate (#8 — `ci/`) exist. Still pending before the corpus opens: governance
-doc, contributor attestation, removal runbook, manifest-row *generation* + the end-to-end contribution
-path (#10), and the seed corpus. Work is tracked in this repo's issues (epic #2; children #3–#15).
+**v0 scaffolding — not yet open for contributions.** In place: the repo skeleton, locked layout, the
+Tier 2 tier doc, the design docs, the security hooks, the license, the locked manifest/contribution
+schema, the CI re-scan merge gate (#8) now **enforced as a required status check** (#39), manifest-row
+generation (#33) writing past branch protection via the manifest-writer App (#35), sign-off
+enforcement (#31), the end-to-end contribution path / CONTRIBUTING.md (#10), the governance doc,
+contributor attestation, and the removal runbook. The remaining long pole before the corpus opens is
+the **seed corpus** (#11 — ≥2 contributors × ≥3 sanitized sessions); assorted hardening/disclosure
+follow-ups are tracked too (#13, #24, #25, #27, #28). Work is tracked in this repo's issues (epic #2).
