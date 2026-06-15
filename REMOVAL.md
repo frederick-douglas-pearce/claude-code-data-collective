@@ -229,7 +229,7 @@ from their retained original and re-contribute.
 [ ] Removal request? → verify requester controls the contributor identity (§2)
 [ ] Classify: live-credential / dead-secret / pii / contributor-request (§3)
 [ ] Locate: hash → corpus|structural/<cid>/<hash>/ + manifest.jsonl row (§4)
-[ ] Tombstone (§6A): git rm dir, drop manifest row, append removals.jsonl, PR+merge
+[ ] Tombstone (§6A): git rm dir, drop manifest row, append removals.jsonl, commit -s, PR+merge (gate passes on its own — no admin bypass)
 [ ] Live/serious? → history rewrite (§6B): filter-repo, force-push, GitHub Support, rotate
 [ ] Communicate + close; erratum if it changes a published count/claim (§8)
 [ ] State the honest limits to the reporter (§9)
