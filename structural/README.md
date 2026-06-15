@@ -137,6 +137,50 @@ value-bearing field added there must earn the same sanitizer-grade adversarial l
 a sanitizer rule. `scan.py`'s safety record does not transfer to a tool that hasn't earned
 it. Until #119 lands with that review, this tier stays structural-only.
 
+## Scope — an unscoped, point-in-time snapshot
+
+A `scan.json` profiles your **whole projects root as of scan time**, with no bounded scope.
+Consumers should read it accordingly:
+
+- **Not directly comparable across contributors.** The counts (`files_scanned`,
+  `lines_scanned`, `content_block_types`, …) are a per-environment census, not a normalized
+  sample. 903 files could be two years of heavy daily use or two weeks of it; the artifact
+  carries no denominator that would let you tell.
+- **Not reproducible** — even by the contributor. The input (`~/.claude/projects/`) keeps
+  growing, so re-running `scan.py` later yields a different, superset snapshot. The byte-stable
+  `<scan_id>` pins the *artifact*, not a reproducible *measurement*.
+- **Only implicit temporal signal today.** The `versions` histogram brackets a Claude Code
+  version range, and the manifest's `contributed_at` bounds "scanned no later than." There is
+  no explicit scan scope or window in the artifact.
+
+This is a property of the zero-leak contract, not an oversight: `scan.py`'s
+[SECURITY CONTRACT](https://github.com/frederick-douglas-pearce/claude-code-sessions/blob/32b2d77/tooling/format-scan/scan.py)
+forbids the timestamps, paths, and UUIDs that would scope or pin the input. Whether the
+artifact should carry **content-free** scope metadata (a `summary.scope` block; optional
+`--since/--until` windowing) is under design upstream in
+[claude-code-sessions#124](https://github.com/frederick-douglas-pearce/claude-code-sessions/issues/124)
+and [#125](https://github.com/frederick-douglas-pearce/claude-code-sessions/issues/125); when
+#124 ships (bumping `scan_version` 0.1.0 → 0.2.0) the additive `summary.scope` note lands here
+and in [SCHEMA.md](../SCHEMA.md). The corpus-level
+[datasheet](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/25)
+carries this caveat for data consumers.
+
+## What `original_retained` means for Tier 2
+
+`contribution.json` is **tier-identical by design** (the tier is the path, not a field), so a
+Tier 2 profile affirms the same `attestation.original_retained: true` as Tier 1 — but it means
+something **weaker and differently-purposed** here, because a structural profile has no
+discrete, pinnable original. The full, precise wording is
+[ATTESTATION.md §C2](../ATTESTATION.md#c2-tier-2--you-retain-authentic-source-sessions-best-effort); in short:
+
+- **Its load-bearing force is authenticity.** Because CI **never re-scans** a Tier 2 row
+  (see below), your affirmation that the profile came from **real, valid session data** — not
+  synthetic or fabricated input — is what backs its genuineness. That is the contributor-side
+  half of the version-attested trust model.
+- **Retention is best-effort, not a pinned input.** You keep your sessions so you *can* re-scan
+  if `scan.py` gains new fields — but a re-scan is a fresh, growing snapshot, not a
+  re-derivation of the same bytes, and **no PII-takedown obligation attaches** (next section).
+
 ## No PII-takedown obligations attach to this tier
 
 Tier 1 carries a PII-takedown obligation because a sanitized transcript can still leak

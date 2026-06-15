@@ -40,8 +40,10 @@ You need:
      for Tier 1 — see its README for install (`uv pip install -e ".[dev]"`).
    - [`scan.py`](https://github.com/frederick-douglas-pearce/claude-code-sessions/blob/main/tooling/format-scan/scan.py)
      for Tier 2 — runs with stock Python 3.
-4. **Your retained originals.** You affirm you keep your pre-sanitization input so a
-   contribution can be re-sanitized if the sanitizer's rules improve
+4. **Your retained originals.** You affirm you keep your pre-sanitization input. For **Tier 1**
+   that pins a discrete original so the contribution can be re-sanitized if the sanitizer's
+   rules improve; for **Tier 2** there is no discrete original, so the affirmation is primarily
+   that the profile came from **real, authentic session data** plus best-effort retention
    ([ATTESTATION.md §C](ATTESTATION.md#c-you-retain-the-original)). Don't delete your raw
    sessions after contributing.
 
@@ -209,7 +211,12 @@ mv scan.json structural/$ID/$SCAN_ID/
 
 Identical to Tier 1 — create `structural/$ID/$SCAN_ID/contribution.json` with the same four
 keys shown [above](#4-write-contributionjson). The tier is decided by the path
-(`structural/`), never by a field, so the file is the same for both tiers.
+(`structural/`), never by a field, so the file is the same for both tiers. One clause means
+something tier-specific here: `original_retained` has **no discrete original** to pin for a
+structural profile, so for Tier 2 it primarily affirms the profile came from **real, authentic
+session data** — the basis for this never-re-scanned tier's trust — plus best-effort retention
+([ATTESTATION.md §C2](ATTESTATION.md#c2-tier-2--you-retain-authentic-source-sessions-best-effort),
+[structural/README.md](structural/README.md#what-original_retained-means-for-tier-2)).
 
 ### 5. Validate locally, then open the PR
 

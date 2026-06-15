@@ -116,10 +116,44 @@ including the published service levels and their limits (above).
 
 ## C. You retain the original
 
-By setting `attestation.original_retained = true`, you affirm you **retain your original,
-pre-sanitization input.** If the sanitizer's rules improve, your contribution can then be
-**re-sanitized from your retained original and resubmitted** — the normal path when the pinned
-sanitizer version is bumped (see [GOVERNANCE.md](GOVERNANCE.md#sanitizer-versioning--coverage-updates)).
+`attestation.original_retained` is a **single boolean on a deliberately tier-identical
+[`contribution.json`](SCHEMA.md#contributionjson)** (the tier is decided by the path, not a
+field — see [LAYOUT.md](LAYOUT.md)). The boolean is the same; **what it affirms differs by
+tier**, because the two tiers retain different things for different reasons. Set it `true` only
+if the tier-appropriate clause below holds.
+
+### C1. Tier 1 — you retain a discrete, pinnable original
+By setting `original_retained = true` on a **Tier 1** (`corpus/`) contribution, you affirm you
+**retain your original, pre-sanitization input** — the one raw session file keyed by
+`input_sha256`. This retention has teeth on both axes:
+
+- **Re-sanitization.** If the sanitizer's rules improve, your contribution can be
+  **re-sanitized from your retained original and resubmitted** — the normal path when the
+  pinned sanitizer version is bumped (see
+  [GOVERNANCE.md](GOVERNANCE.md#sanitizer-versioning--coverage-updates)).
+- **Takedown handle.** The `input_sha256` is the PII-takedown handle: a removal request can
+  find and excise the exact contribution (see [REMOVAL.md](REMOVAL.md)).
+
+### C2. Tier 2 — you retain authentic source sessions, best-effort
+A **Tier 2** (`structural/`) profile has **no discrete pinnable original.** Its "input" is your
+whole, continuously-growing `~/.claude/projects/` *as of scan time* — a point-in-time census,
+not a fixed file (see [structural/README.md](structural/README.md#what-original_retained-means-for-tier-2)).
+So for Tier 2 the clause is **meaningful but weaker**, and its *primary* force is
+**authenticity, not re-derivation**:
+
+- **Authenticity (the load-bearing part).** You affirm the profile was produced by `scan.py`
+  over **real, valid Claude Code session data on your machine** at scan time — not synthetic,
+  hand-edited, or fabricated input. Because CI **never re-scans** a Tier 2 row (the raw input
+  is exactly what you are withholding), this affirmation — not an independent re-scan — is what
+  backs the claim that the profile is genuine. It is the contributor-side counterpart to Tier
+  2's version-attestation trust model.
+- **Best-effort retention.** You affirm you keep those sessions (don't delete them right after
+  contributing) so that, if `scan.py` later emits new structural fields, you **can** re-scan
+  and resubmit. Two honest caveats: a re-scan will **not** reproduce the same artifact — the
+  input keeps growing, so a fresh scan is a new, superset snapshot, not a re-derivation of the
+  pinned bytes — and **no PII-takedown obligation attaches** to Tier 2, because the artifact is
+  content-free by construction and there is nothing to take down
+  ([structural/README.md](structural/README.md#no-pii-takedown-obligations-attach-to-this-tier)).
 
 ---
 
