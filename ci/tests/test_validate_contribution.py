@@ -16,7 +16,9 @@ planted secret is a single synthetic, obviously-fake constant — never a real k
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import sys
 import tempfile
@@ -307,6 +309,39 @@ class ClassifyChangedPathsTests(unittest.TestCase):
             ["corpus/Bad_CID/nothex/session.jsonl"]
         )
         self.assertEqual(len(strays), 1)
+
+
+class RemovalRoutingTests(unittest.TestCase):
+    """A REMOVAL.md §6A tombstone PR deletes a contribution dir. The gate must
+    treat a dir that is gone from disk as a removal (nothing to re-scan, exit 0),
+    not re-scan it and FAIL on the missing session.jsonl — otherwise the required
+    `gate-summary` check blocks the very takedown the runbook promises (#28)."""
+
+    def _run(self, changed_lines: list[str]) -> tuple[int, str]:
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as fh:
+            fh.write("\n".join(changed_lines))
+            path = fh.name
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = vc.main(["--changed-files", path])
+        Path(path).unlink()
+        return code, buf.getvalue()
+
+    def test_fully_deleted_contribution_is_a_noop_removal(self):
+        # `nonexistent-cid/<hash>` does not exist under the repo, so every changed
+        # path under it was a deletion — the dir is gone. Exit 0, no re-scan.
+        code, out = self._run(
+            [
+                f"corpus/nonexistent-cid/{HASH_A}/session.jsonl",
+                f"corpus/nonexistent-cid/{HASH_A}/session.jsonl.scrubbed",
+                f"corpus/nonexistent-cid/{HASH_A}/contribution.json",
+                "manifest.jsonl",  # the dropped index row (repo root — ignored)
+                "removals.jsonl",  # the appended ledger record (repo root — ignored)
+            ]
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("REMOVAL", out)
+        self.assertIn("nothing to re-scan", out)
 
 
 if __name__ == "__main__":

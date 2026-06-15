@@ -124,14 +124,23 @@ grep -v '<input_sha256_or_scan_id>' manifest.jsonl > manifest.jsonl.tmp && \
 #    Edit removals.jsonl and add one line.
 
 git add -A
-git commit -m "chore(removal): tombstone <tier> contribution <short-hash> (<reason class>)"
+git commit -s -m "chore(removal): tombstone <tier> contribution <short-hash> (<reason class>)"
 git push -u origin HEAD
 ```
 
+> **Sign the removal commit (`-s`).** A removal PR deletes files under a tier tree, so the same path
+> router that gates contributions classifies it as a contribution PR — the **sign-off** check (#31)
+> therefore requires a `Signed-off-by` trailer on the removal commit, and the **re-scan** gate runs
+> too. Both are satisfied by following this procedure: the re-scan treats a contribution directory
+> the PR fully deletes as a *removal* (nothing left to scan → it passes, it does not fail on the now-
+> missing `session.jsonl`), and `-s` satisfies sign-off. No admin bypass is needed.
+
 Open a PR using the [security template](.github/PULL_REQUEST_TEMPLATE.md); its **Security review**
-section states the reason *class* (not the specifics). Merge it — a removal PR does **not** wait on
-the normal contribution gate; it is a maintainer action. After merge, confirm the files are gone from
-the published branch and the manifest row is absent.
+section states the reason *class* (not the specifics). The required merge gate runs on a removal PR
+like any other and **passes** on its own — a removal is not a special-cased bypass; a maintainer with
+**write access** (no admin) can merge it. After merge, confirm the files are gone from the published
+branch and the manifest row is absent; the post-merge manifest generator sees only deletions, so it
+re-adds nothing and the weekly drift check stays green.
 
 > A tombstone leaves the data in git **history** (reachable only by an explicit old commit SHA, not
 > from the branch). For a dead secret, an ordinary removal request, or most PII that is acceptable.
