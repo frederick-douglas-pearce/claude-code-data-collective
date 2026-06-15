@@ -143,3 +143,5 @@ sanitizer version is bumped (see [GOVERNANCE.md](GOVERNANCE.md#sanitizer-version
 - [REMOVAL.md](REMOVAL.md) — removal mechanics (the basis for B8).
 - [`docs/research-governance-norms.md`](docs/research-governance-norms.md) §3 — the evidentiary
   basis for why this attestation goes beyond a stock DCO.
+- [`docs/glossary.md`](docs/glossary.md) — definitions of the terms of art used here (DCO vs.
+  CLA, Inputs/Outputs, Results, source-available, sign-off).

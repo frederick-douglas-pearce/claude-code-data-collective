@@ -208,3 +208,6 @@ deliberately hard to change; treat amendments to them as schema migrations, not 
   design rationale and sequencing.
 - [`docs/research-governance-norms.md`](docs/research-governance-norms.md) — the due-diligence
   scan of comparable-dataset governance norms behind these decisions.
+- [`docs/glossary.md`](docs/glossary.md) — definitions of the terms of art used here (curation /
+  benevolent gatekeeper, CI re-scan vs. version-attested, coverage boundary, disclosure event,
+  bus factor).

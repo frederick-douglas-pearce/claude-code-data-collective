@@ -10,6 +10,9 @@ document is the human-readable companion and explains the **provenance** of ever
 who supplies it and how CI verifies it. Where prose and the JSON Schemas disagree, the JSON
 Schemas win.
 
+Terms of art used here — *attestation key*, *version-attested* vs. *ci-rescan*, *content-addressed*,
+*sidecar* — are defined in [`docs/glossary.md`](docs/glossary.md).
+
 ## Design: thin declaration, CI-derived provenance
 
 CCDC's trust model is *don't trust the contributor or the sidecar* (see LAYOUT.md). The
