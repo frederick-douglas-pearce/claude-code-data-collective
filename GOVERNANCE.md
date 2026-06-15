@@ -58,6 +58,12 @@ Curation is a judgment, and the gatekeeper exercises it.
 Every PR passes through two layers. The mechanical layer is the load-bearing trust mechanism —
 **manual review does not scale and is not what the corpus's safety rests on.**
 
+The mechanical layer is *enforced*, not merely procedural: `main` is a protected branch whose
+ruleset names the contribution gate a **required status check**, so a PR with a red or missing
+gate cannot be merged (the gate reports through one always-on aggregator check that runs on every
+PR — #39). The sole non-human exception is the [manifest-writer App](.github/workflows/manifest-generate.yml),
+a least-privilege ruleset bypass actor that appends the CI-generated index after merge.
+
 - **Mechanical CI re-scan (Tier 1).** [`ci/validate_contribution.py`](ci/validate_contribution.py),
   run by [the contribution gate workflow](.github/workflows/contribution-gate.yml), re-derives
   the secret scan from every submitted `corpus/` file by re-running the sanitizer's *own*
