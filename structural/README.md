@@ -162,7 +162,7 @@ artifact should carry **content-free** scope metadata (a `summary.scope` block; 
 and [#125](https://github.com/frederick-douglas-pearce/claude-code-sessions/issues/125); when
 #124 ships (bumping `scan_version` 0.1.0 → 0.2.0) the additive `summary.scope` note lands here
 and in [SCHEMA.md](../SCHEMA.md). The corpus-level
-[datasheet](https://github.com/frederick-douglas-pearce/claude-code-data-collective/issues/25)
+[datasheet](../docs/datasheet-ccdc.md#tier-2-is-an-unscoped-point-in-time-snapshot)
 carries this caveat for data consumers.
 
 ## What `original_retained` means for Tier 2
