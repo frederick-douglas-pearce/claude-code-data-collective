@@ -516,7 +516,24 @@ def main(argv: list[str] | None = None) -> int:
                 "nothing to re-scan."
             )
             return 0
-        dirs.extend(REPO_ROOT / d for d in contribution_dirs)
+        # A contribution dir whose files this PR fully deletes (gone from disk at HEAD)
+        # is a *removal* — the REMOVAL.md §6A tombstone — not something to re-scan. The
+        # dir no longer exists, so there is nothing left to leak; re-scanning it would
+        # FAIL on the missing session.jsonl and, since `gate-summary` is a required
+        # check on main, block the very takedown the runbook promises a write-access
+        # maintainer can land without admin. A dir still present is a normal add/edit
+        # (or a partial deletion that left a malformed dir) and is re-scanned as before.
+        present = [d for d in contribution_dirs if (REPO_ROOT / d).exists()]
+        removed = [d for d in contribution_dirs if not (REPO_ROOT / d).exists()]
+        for d in removed:
+            print(f"REMOVAL {d} (contribution dir deleted by this PR; nothing to re-scan)")
+        if not present:
+            print(
+                f"Only removals in this change ({len(removed)} contribution dir(s) "
+                "deleted); nothing to re-scan."
+            )
+            return 0
+        dirs.extend(REPO_ROOT / d for d in present)
 
     if not dirs:
         parser.error("no contribution directories to validate")
