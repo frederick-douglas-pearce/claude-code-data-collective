@@ -142,6 +142,18 @@ Tier 2 tier doc, the design docs, the security hooks, the license, the locked ma
 schema, the CI re-scan merge gate (#8) now **enforced as a required status check** (#39), manifest-row
 generation (#33) writing past branch protection via the manifest-writer App (#35), sign-off
 enforcement (#31), the end-to-end contribution path / CONTRIBUTING.md (#10), the governance doc,
-contributor attestation, and the removal runbook. The remaining long pole before the corpus opens is
-the **seed corpus** (#11 — ≥2 contributors × ≥3 sanitized sessions); assorted hardening/disclosure
-follow-ups are tracked too (#13, #24, #25, #27, #28). Work is tracked in this repo's issues (epic #2).
+contributor attestation, and the removal runbook. The contribution path is now **proven end-to-end
+across both tiers**: a Tier 2 profile (#40) and the maintainer's own three Tier 1 sessions (#46) are
+merged, with the CI re-scan gate, sign-off enforcement, and the manifest write-back all exercised
+under the live `main-protection` ruleset (the write-back commit is authored by the manifest-writer
+App, confirming its bypass of the required gate works in production). The remaining long pole before
+the corpus opens is the rest of the **seed corpus** (#11): its acceptance criteria require **≥2
+contributors × ≥3 sanitized sessions each, with at least one contribution from someone other than the
+maintainer** — so #11 stays open pending one *external* contributor (the day-30 external-contribution
+gate); that step is recruiting, not code. The private leak-intake channel (#27) is in place: GitHub
+Private Vulnerability Reporting is enabled and documented in [`SECURITY.md`](SECURITY.md), with the
+public issue template, [`GOVERNANCE.md`](GOVERNANCE.md), and [`REMOVAL.md`](REMOVAL.md) all routing
+sensitive reports to it. Remaining pre-launch items, roughly in order: a removal-process dry-run (#28 —
+the second trust/safety gate), then the corpus datasheet + sample-limitation disclosure (#25) and the
+launch post (#15). Assorted non-blocking follow-ups are tracked too (#13, #24, #14). Work is tracked in
+this repo's issues (epic #2).

@@ -14,6 +14,15 @@ body:
         `input_sha256` / `scan_id`) and *describe* the kind of data — don't
         reproduce it. If a live credential leaked, **rotate it now**; we cannot
         rotate it for you.
+
+
+        🔒 **Can't describe it safely in public?** Use the private channel
+        instead — the **"Report a vulnerability"** button on the
+        [Security tab](https://github.com/frederick-douglas-pearce/claude-code-data-collective/security/advisories/new),
+        or see [`SECURITY.md`](https://github.com/frederick-douglas-pearce/claude-code-data-collective/blob/main/SECURITY.md).
+        Use it whenever the location itself is identifying or you're unsure how
+        to redact. This public form is best for routine removal requests for
+        your own data.
   - type: dropdown
     id: kind
     attributes:

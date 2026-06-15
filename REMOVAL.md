@@ -6,7 +6,8 @@ to be executed **step by step by someone who is not the original maintainer**, u
 without having to make the hard calls in the moment. The calls are made here, in advance.
 
 It is the mechanics behind the service levels committed in [GOVERNANCE.md](GOVERNANCE.md#removal--leak-response).
-The public intake form is [`.github/ISSUE_TEMPLATE/leak_or_removal.yml`](.github/ISSUE_TEMPLATE/leak_or_removal.yml).
+Reports arrive on two channels (§1): the private [`SECURITY.md`](SECURITY.md) advisory channel and
+the public [`.github/ISSUE_TEMPLATE/leak_or_removal.yml`](.github/ISSUE_TEMPLATE/leak_or_removal.yml).
 
 > **Who can run this.** A *tombstone* (the default, §6A) needs **repo write access**. A *history
 > rewrite* (the exception, §6B) needs **repo admin** plus contacting GitHub Support. Either way you
@@ -31,13 +32,15 @@ The public intake form is [`.github/ISSUE_TEMPLATE/leak_or_removal.yml`](.github
 - **Public:** the [leak / removal issue template](.github/ISSUE_TEMPLATE/leak_or_removal.yml)
   (labeled `security`). It instructs reporters not to paste the secret and to point by path /
   `input_sha256` / `scan_id`.
-- **Private:** for cases that cannot be described safely in a public issue, a private channel is
-  needed so a reporter never has to expose a live secret to open it.
-  > 🔧 **Setup gap (maintainer action):** designate a private intake address (e.g. a dedicated
-  > security email or GitHub private vulnerability reporting) and link it from the issue template and
-  > [GOVERNANCE.md](GOVERNANCE.md#removal--leak-response). Until that exists, the documented fallback
-  > is: open a public issue describing only the *location and kind*, withholding all specifics, and
-  > the maintainer follows up over a private channel.
+- **Private:** for cases that cannot be described safely in a public issue, use **GitHub Private
+  Vulnerability Reporting** — the **"Report a vulnerability"** button on the repository's
+  [Security tab](https://github.com/frederick-douglas-pearce/claude-code-data-collective/security/advisories/new).
+  It opens a private advisory thread visible only to the reporter and repo admins, so a reporter
+  never has to expose a live secret to reach us, and any admin can see it (bus-factor-friendly). The
+  reporting discipline and what to include are in [`SECURITY.md`](SECURITY.md).
+  > If a reporter has no GitHub account and the matter is sensitive, the fallback stands: open a public
+  > issue describing only the *location and kind*, withholding all specifics, and a maintainer follows
+  > up over a private channel.
 
 A complete report carries: **(a)** the `input_sha256` (Tier 1) or `scan_id` (Tier 2) and/or file
 path, **(b)** the *kind* of data (which credential type, or what category of PII), and **(c)** the
@@ -226,7 +229,8 @@ from their retained original and re-contribute.
 ## See also
 
 - [GOVERNANCE.md](GOVERNANCE.md) — the curation model and the SLA this runbook implements.
-- [`.github/ISSUE_TEMPLATE/leak_or_removal.yml`](.github/ISSUE_TEMPLATE/leak_or_removal.yml) — intake form.
+- [`SECURITY.md`](SECURITY.md) — the private intake channel (GitHub Private Vulnerability Reporting).
+- [`.github/ISSUE_TEMPLATE/leak_or_removal.yml`](.github/ISSUE_TEMPLATE/leak_or_removal.yml) — public intake form.
 - [LAYOUT.md](LAYOUT.md) · [SCHEMA.md](SCHEMA.md) — content-addressed paths and the locked manifest schema.
 - [`docs/research-governance-norms.md`](docs/research-governance-norms.md) §2 — the comparable-dataset
   takedown norms (The Stack opt-out, Re-LAION, GitHub history guidance) behind these mechanics.
