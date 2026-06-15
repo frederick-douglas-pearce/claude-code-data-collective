@@ -78,6 +78,9 @@ contributor, the trust asymmetry, and the build sequence — lives in `docs/`:
   where to start and what's blocked by what.
 - **[`docs/glossary.md`](docs/glossary.md)** — the recurring governance/licensing/tooling terms
   of art (DCO vs. CLA, Inputs/Outputs/Results, tombstone, version-attested), defined once.
+- **[`docs/datasheet-ccdc.md`](docs/datasheet-ccdc.md)** — the corpus-level datasheet (Datasheets /
+  Data Statements short form): CCDC as a citable research object, including the self-selected-sample
+  generalizability caveat.
 
 ## Contributing
 
