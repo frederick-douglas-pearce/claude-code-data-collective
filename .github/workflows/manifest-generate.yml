@@ -16,15 +16,32 @@ name: Generate manifest rows
 # not re-trigger this workflow (loop break). `concurrency` serializes pushes so two
 # merges never race on the index.
 #
-# ── INFRA PREREQUISITE (branch protection) ──────────────────────────────────────────
+# ── INFRA PREREQUISITE (branch protection) — DECISION OF RECORD (#35) ────────────────
 # The generate job pushes manifest.jsonl directly to main (the index is CI-generated
 # and never hand-edited — LAYOUT.md; a PR-per-row would be pure churn and contradicts
-# the anti-merge-conflict rationale). If main has PR-required branch protection, the
-# default GITHUB_TOKEN push is REJECTED and the manifest silently stops updating. Allow
-# the github-actions bot to push to main (branch-protection bypass for the app) or wire
-# a dedicated token here. The push step is fail-loud: a rejected push fails the job
-# rather than leaving a stale index unnoticed; drift-check is the backstop that surfaces
-# it if it ever slips.
+# the anti-merge-conflict rationale). main is protected by a ruleset that REQUIRES a PR;
+# the default GITHUB_TOKEN push would be REJECTED. The chosen writer is a dedicated,
+# repo-scoped GitHub App ("manifest-writer") added as the SINGLE non-human bypass actor
+# on that ruleset (the other bypass actor is the Repository-admin role, for the
+# maintainer's CLAUDE.md copy-edit carve-out). Why an App, not a PAT or a bot bypass:
+# this push is a STANDING bypass of the load-bearing re-scan gate on a public
+# sanitized-data repo, so the writer must be least-privilege (contents:write, this repo
+# only), bot-attributed (auditable, not acting-as-admin), and revocable independently of
+# any person's account. On a user-owned repo github-actions[bot] is not a selectable
+# bypass actor, so the App is also the only clean mechanism. A ruleset bypass actor
+# bypasses ALL rules in the ruleset, so when required status checks are later added the
+# App's [skip ci] push will not deadlock against them.
+#
+# This job mints an installation token (actions/create-github-app-token) when the App is
+# provisioned, and FALLS BACK to GITHUB_TOKEN when its vars/secrets are absent (pre-
+# provisioning, or on forks) so the job still runs — that fallback push is exactly what a
+# configured ruleset will (correctly) reject. The push step is fail-loud: a rejected push
+# fails the job rather than leaving a stale index unnoticed; drift-check is the backstop.
+#
+# Provisioning + rotation: APP_ID lives in the repo variable MANIFEST_WRITER_APP_ID and
+# the App's private key in the secret MANIFEST_WRITER_PRIVATE_KEY. To rotate, generate a
+# new private key in the App's settings, replace the secret, then delete the old key —
+# the running workflow picks up the new key on its next run with no code change.
 
 on:
   push:
@@ -49,11 +66,25 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Mint the manifest-writer App token (the single non-human ruleset bypass actor on
+      # main, #35) when the App is provisioned; otherwise the step is skipped and every
+      # `steps.app-token.outputs.*` is empty, so the job falls back to GITHUB_TOKEN below.
+      # APP_ID is a repo variable (usable in `if:`); the private key is a secret.
+      - name: Mint manifest-writer App token
+        id: app-token
+        if: ${{ vars.MANIFEST_WRITER_APP_ID != '' }}
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.MANIFEST_WRITER_APP_ID }}
+          private-key: ${{ secrets.MANIFEST_WRITER_PRIVATE_KEY }}
       - uses: actions/checkout@v4
         with:
           # Full history so the per-path `git log --diff-filter=A` add-commit lookup
           # and the push-range diff both resolve.
           fetch-depth: 0
+          # Push past main's PR-required ruleset using the App token when present; the
+          # remote checkout configures is what `git push` below uses.
+          token: ${{ steps.app-token.outputs.token || github.token }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -75,6 +106,23 @@ jobs:
           echo "Changed files in push:"; cat changed-files.txt
       - name: Generate manifest rows
         run: python3 ci/generate_manifest.py --changed-files changed-files.txt
+      # Resolve the committer identity so manifest commits attribute to whichever token
+      # actually pushes them: the App's own bot when provisioned, else github-actions[bot].
+      - name: Resolve committer identity
+        id: committer
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          if [ -n "${APP_SLUG}" ]; then
+            uid="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
+            echo "name=${APP_SLUG}[bot]" >> "$GITHUB_OUTPUT"
+            echo "email=${uid}+${APP_SLUG}[bot]@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=github-actions[bot]" >> "$GITHUB_OUTPUT"
+            echo "email=41898282+github-actions[bot]@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+          fi
       - name: Commit manifest if changed
         # Stage ONLY manifest.jsonl — this write-path bypasses the contribution gate
         # ([skip ci], push not PR), so it must never carry anything else to main.
@@ -84,8 +132,8 @@ jobs:
             echo "manifest.jsonl unchanged; nothing to commit."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ steps.committer.outputs.name }}"
+          git config user.email "${{ steps.committer.outputs.email }}"
           git add manifest.jsonl
           git commit -m "chore(ci): index merged contribution(s) in manifest.jsonl [skip ci]"
           # Fail loud if the push is rejected (e.g. branch protection) — never swallow it.
