@@ -5,29 +5,36 @@ name: Contribution gate
 # gate re-derives the security checks on every contribution PR and NEVER trusts the
 # contributor's .scrubbed sidecar. See ci/validate_contribution.py for the full model.
 #
-# Three jobs:
-#   - gate:     re-scans + validates the contribution dirs a PR actually touches.
-#   - signoff:  fails a CONTRIBUTION PR whose commits lack a `Signed-off-by` trailer
-#               (#31), making ATTESTATION.md's `git commit -s` layer load-bearing.
-#               Path-scoped via the SAME router as the gate (no DCO App: infra/docs
-#               PRs are exempt, mirroring the PR template's N/A escape). Dependency-
-#               free — it does not install ci/requirements.txt.
-#   - selftest: runs the validator + manifest-generation + sign-off test suites so
-#               the CI tooling cannot regress (generation re-uses the validator, #33).
+# Four jobs:
+#   - gate:        re-scans + validates the contribution dirs a PR actually touches.
+#   - signoff:     fails a CONTRIBUTION PR whose commits lack a `Signed-off-by` trailer
+#                  (#31), making ATTESTATION.md's `git commit -s` layer load-bearing.
+#                  Path-scoped via the SAME router as the gate (no DCO App: infra/docs
+#                  PRs are exempt, mirroring the PR template's N/A escape). Dependency-
+#                  free — it does not install ci/requirements.txt.
+#   - selftest:    runs the validator + manifest-generation + sign-off test suites so
+#                  the CI tooling cannot regress (generation re-uses the validator, #33).
+#   - gate-summary: always-on aggregator (#39); the SINGLE required status check on main.
 #
-# Triggered on changes to either tier tree OR to the gate's own code/schema, so a PR
-# that edits the validator or a schema is itself validated. A PR that touches a tier
+# A PR that edits the validator or a schema is itself validated. A PR that touches a tier
 # tree but no real contribution dir (e.g. structural/README.md) passes the gate with
 # "nothing to re-scan"; a contribution file at the wrong depth is a stray and FAILS.
+#
+# Why the PR trigger is NOT path-filtered (#39): `gate-summary` is the required status
+# check on the main-protection ruleset, and a *required* check that never reports leaves
+# a PR stuck forever on "Expected — Waiting for status". A workflow-level `paths:` filter
+# skips the WHOLE workflow (summary job included) on a docs-only PR, which would deadlock
+# every such PR — exactly the trap a job-level summary inside a path-filtered workflow
+# falls into. So the workflow runs on EVERY PR. That is safe and cheap: `gate`/`signoff`
+# self-no-op when no contribution dir is touched (the validator exits 0 "nothing to
+# re-scan"), so the only added cost on a docs PR is one selftest run (~1 min). The PUSH
+# trigger STAYS path-filtered: a direct push to main has no required-check to satisfy, so
+# there is no reason to run selftest on every main push. Stay on `pull_request` (never
+# `pull_request_target`) so the required check also reports on fork PRs, the expected
+# multi-contributor path — otherwise the deadlock just relocates to forks.
 
 on:
   pull_request:
-    paths:
-      - "corpus/**"
-      - "structural/**"
-      - "ci/**"
-      - "schema/**"
-      - ".github/workflows/contribution-gate.yml"
   push:
     branches: [main]
     paths:
@@ -108,3 +115,43 @@ jobs:
           python3 ci/check_signoff.py
           --changed-files changed-files.txt
           --base "$BASE" --head "$HEAD"
+
+  gate-summary:
+    # Always-on aggregator (#39): the one STABLE check name required by the main-protection
+    # ruleset. Because the workflow has no `on.pull_request.paths` filter, this job runs on
+    # EVERY PR, so the required check is always present and never stuck pending. Require THIS
+    # check in the ruleset — never the path-conditioned jobs it summarizes.
+    #
+    # DO NOT RENAME this job or its `name:` — the ruleset's required_status_checks rule pins
+    # the check-run context by that exact string; renaming it silently re-creates the
+    # "Expected — Waiting for status" deadlock on every PR. Sequencing: merge this job, read
+    # the exact context it reports on a real PR, THEN add it to the ruleset (observe-then-
+    # require). See manifest-generate.yml's header: the manifest-writer App is a ruleset
+    # bypass actor (bypass_mode: always), so its post-merge [skip ci] push is not blocked by
+    # this required check.
+    name: Gate summary
+    if: always()
+    needs: [selftest, gate, signoff]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert every required gate job passed
+        env:
+          SELFTEST: ${{ needs.selftest.result }}
+          GATE: ${{ needs.gate.result }}
+          SIGNOFF: ${{ needs.signoff.result }}
+        # ALLOWLIST, not denylist: pass only on success/skipped, fail on everything else
+        # (failure, cancelled, and any future result state). A denylist that only checked
+        # for 'failure' would silently let a `cancelled` re-scan merge. On a docs PR the
+        # gate/signoff jobs report `success` (their `if: pull_request` is still true, they
+        # just no-op internally) — `skipped` is accepted only as a forward guard, so if
+        # `gate` ever gains a real skip condition this aggregator must be re-evaluated.
+        run: |
+          set -euo pipefail
+          echo "results: selftest=$SELFTEST gate=$GATE signoff=$SIGNOFF"
+          for r in "$SELFTEST" "$GATE" "$SIGNOFF"; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::a required gate job did not pass (result=$r)"; exit 1 ;;
+            esac
+          done
+          echo "All required gate jobs passed or were legitimately skipped."
