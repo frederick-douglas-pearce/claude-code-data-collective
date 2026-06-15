@@ -1,0 +1,1 @@
+stray file at the wrong depth — should fail the gate
