@@ -23,13 +23,13 @@ Here's the part that matters for what comes next: those two tools were built so 
 
 Almost everything worth knowing about how Claude Code behaves gets more interesting — and more trustworthy — drawn from many people's sessions instead of one. Everything I've published about Claude Code rests on my own private sample, and that's a ceiling only more contributors can lift.
 
-A public, safely-sanitized corpus of real sessions is the kind of foundation people can build tools and research on — instead of working from one person's session files. A few I'd genuinely like to see exist:
+A public corpus of real, sanitized session files is the kind of foundation people can build tools and research on — instead of working from one person's session files. A few I'd genuinely like to see exist:
 
 - **Tooling that works on real sessions, not toy ones.** Session viewers, log explorers, token and cost dashboards, diff tools — everyone building them today tests against their own logs or hand-mocked data. A shared corpus is a common set of realistic fixtures, including the weird cases only someone else's sessions contain.
 - **A public record of how the format evolves.** Sanitized sessions across many Claude Code versions are, together, the documentation the format doesn't always have — a way to see how the session schema actually changed, release over release. That's useful to anyone building on top of Claude Code, not just me.
 - **Honest, reproducible study of agentic coding.** How do people really drive these tools? Where do agents loop, stall, recover, or misuse a tool? Those questions deserve answers that someone _other_ than the author can check — which is only possible against data that's actually public.
 - **Better tools through aggregate analysis.** The error and retry patterns in one session are an anecdote; across hundreds they're a signal that tells tool authors which tool definitions are confusing the model. That's exactly the kind of finding that shouldn't rest on one person's data.
-- **A way in for people without a big private sample.** You shouldn't have to work somewhere with mountains of internal usage to do interesting session research. A shared corpus levels that — a student, an indie dev, and a curious contributor all start from the same place.
+- **A way in for people without a big private sample.** You shouldn't have to work somewhere with mountains of internal usage to do interesting session research. A shared corpus levels that — a student, an experienced dev, and a curious contributor all start from the same place.
 
 The tools to do this safely already exist. What's missing is the data — and the data only shows up if people share it.
 
