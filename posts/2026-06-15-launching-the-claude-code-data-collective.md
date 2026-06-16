@@ -11,19 +11,19 @@ featured: true
 claude_code_version_verified: v2.1.150
 ---
 
-For the last couple of months I've been writing a series that takes Claude Code apart from the inside — what's actually in a session file, how a single tool call flows through it, what a subagent leaves behind. To write any of it honestly, I had to show real session data. And real session data is a problem: a Claude Code session file is a running log of your prompts, your file paths, your code, your command output, and every so often a secret that scrolled past. You can't just post one.
+For the last couple of months I've been writing a series that traces Claude Code's every move — what's actually in a session file, how a single tool call flows through it, what a subagent leaves behind. To write any of it honestly, I had to show real session data. And real session data is a problem: a Claude Code session file is a running log of your prompts, your file paths, your code, your command output, and every so often a secret that scrolled past. You can't just post one.
 
-So before the writing could happen, two small tools had to exist. [`ccs-sanitize`](https://github.com/frederick-douglas-pearce/claude-code-sessions/tree/main/tooling/sanitizer) scrubs a full transcript clean enough to publish. [`scan.py`](https://github.com/frederick-douglas-pearce/claude-code-sessions/blob/main/tooling/format-scan/scan.py) does something narrower and, it turns out, more interesting: it reports the _shape_ of a session — which keys appear, which types, which block kinds, which Claude Code versions produced them — without emitting a single byte of the content inside.
+So before the writing could happen, two small tools had to exist. [`ccs-sanitize`](https://github.com/frederick-douglas-pearce/claude-code-sessions/tree/main/tooling/sanitizer) scrubs a full transcript clean enough to publish. [`scan.py`](https://github.com/frederick-douglas-pearce/claude-code-sessions/blob/main/tooling/format-scan/scan.py) does something narrower: it reports the _shape_ of a session — which keys appear, which types, which block kinds, which Claude Code versions produced them — without emitting a single byte of the content inside.
 
-That second tool came from a specific, recurring headache. The Claude Code session format changes constantly, and a lot of the changes are undocumented — a new key here, a renamed field there, a whole new kind of trace file. If you're building anything that reads these files, drift like that breaks you silently. You need to watch the _structure_ of the data over time — but you can't watch it by opening the files, because they're full of things you can't safely look at. `scan.py` is the way out: it sees the structure and nothing else. (Watching for that drift eventually became a standing routine of its own.)
+That second tool came from a specific, recurring challenge. The Claude Code session format changes constantly, and you'll often meet a change in the data before you find it written down anywhere — a new key here, a renamed field there, a whole new kind of trace file. If you're building anything that reads these files, drift like that can break you, silently. You need to watch the _structure_ of the data over time — but there is no need to read the entire contents of each file because they're full of things you can't safely look at and share. `scan.py` is the solution: it sees the structure and nothing else.
 
 Here's the part that matters for what comes next: those two tools were built so that _one person could share one person's sessions_, safely. And they work. Which raises an obvious question.
 
 ## Why stop at one person's sessions?
 
-Almost everything worth knowing about how Claude Code actually behaves gets more interesting — and more trustworthy — the moment it's drawn from many people's sessions instead of one. Every result I've published about Claude Code, the whole series included, runs on my own private sample. That's a real limit, and it isn't one you fix by being careful; you fix it by having more than one person's data.
+Almost everything worth knowing about how Claude Code behaves gets more interesting — and more trustworthy — drawn from many people's sessions instead of one. Everything I've published about Claude Code rests on my own private sample, and that's a ceiling only more contributors can lift.
 
-A public, safely-sanitized corpus of real sessions is the kind of shared resource a lot of useful things get built on. A few I'd genuinely like to see exist:
+A public, safely-sanitized corpus of real sessions is the kind of shared resource a lot of useful things could build off of. A few I'd genuinely like to see exist:
 
 - **Tooling that works on real sessions, not toy ones.** Session viewers, log explorers, token and cost dashboards, diff tools — everyone building them today tests against their own logs or hand-mocked data. A shared corpus is a common set of realistic fixtures, including the weird cases only someone else's sessions contain.
 - **A public record of how the format evolves.** Sanitized sessions across many Claude Code versions are, together, the documentation the format doesn't have — a way to see how the session schema actually changed, release over release. That's useful to anyone building on top of Claude Code, not just me.
@@ -52,7 +52,7 @@ Two more things, plainly. CCDC does feed some tools I'm building, but the [licen
 
 ## Contributing
 
-If you use Claude Code and have sessions you can share — especially open-source work, where the right-to-share question is easy — I'd genuinely like your data in here. The walkthrough is in [CONTRIBUTING.md](https://github.com/frederick-douglas-pearce/claude-code-data-collective/blob/main/CONTRIBUTING.md): sanitize or scan, read it over, open a PR. It doesn't take much — and early contributors shape what this becomes.
+If you use Claude Code and have sessions you can share — especially open-source work, where the right-to-share question is easy — I'd genuinely appreciate your contribution. The walkthrough is in [CONTRIBUTING.md](https://github.com/frederick-douglas-pearce/claude-code-data-collective/blob/main/CONTRIBUTING.md): sanitize or scan, read it over, open a PR. It doesn't take much — and early contributors shape what this becomes.
 
 [**github.com/frederick-douglas-pearce/claude-code-data-collective**](https://github.com/frederick-douglas-pearce/claude-code-data-collective)
 
