@@ -1,0 +1,55 @@
+slug = "2026-06-15-linkedin-launching-the-claude-code-data-collective"
+
+# Two lines: full title is 41 chars, over the ~34 single-line budget. Split
+# keeps the project's full name ("Claude Code Data Collective") intact on line 2.
+title = ["Launching the", "Claude Code Data Collective"]
+
+# Single line, ~45 chars or fewer. Encodes the post's two-sided promise: an
+# invitation to contribute (share your sessions) and the reassurance that makes
+# it safe (the sanitizer/scan keep your secrets out of it).
+subhead = "Share your sessions. Keep your secrets."
+
+# The hero narrates the post's core idea as a before/after: a single raw session
+# line you can never post, versus what scan.py emits across an entire projects
+# root — structure only, no content. Gray // comments label each beat (the
+# renderer's tokenizer colors them as punctuation).
+json_sample = """
+// a raw session line — too much to ever post
+{ "type": "user",
+  "message": { "content": "…prompts, code, secrets…" } }
+
+// scan.py emits only the shape, never the content
+{ "types": { "user": 412, "assistant": 398 },
+  "keys": ["message", "uuid", "timestamp"],
+  "block_types": ["text", "tool_use", "tool_result"] }
+"""
+
+notes = """
+Why this JSON: the post's spine is scan.py — a tool that reports the *shape* of
+session data (key/type taxonomy, counts, block kinds, versions) without emitting
+a byte of the content inside. The card dramatizes that as a two-beat before/after:
+the dangerous raw line up top, the safe structural profile below. It mirrors the
+post's "structure, not content" through-line and the project's safety premise in
+one glance for a general LinkedIn audience.
+
+Conceptual, not a literal dump: scan.py aggregates structure across a whole
+~/.claude/projects/ root rather than transforming one line, and the field names
+here (types / keys / block_types) are a legible paraphrase of its taxonomy, not
+its exact JSON keys. The before/after framing trades literal fidelity for a
+readable hero; the post body and scan.py itself carry the precise semantics.
+
+Data safety: the only "content" shown is the placeholder string
+"…prompts, code, secrets…" — a deliberately fake stand-in, no real prompt text,
+path, UUID, or secret. The counts (412/398) are illustrative round numbers, not
+drawn from any real scan. Nothing here is sanitized real data; it's all invented
+for the card, so there is nothing to leak.
+
+Wrap decisions: title splits at the natural article/subject break ("Launching
+the" / "Claude Code Data Collective") since the full 41-char string exceeds the
+single-line budget, and the split keeps the brand name unbroken. Subhead is two
+short imperative clauses (~39 chars) that pair with the card's two JSON beats.
+
+Layout: 8 code lines (2 comments + 6 JSON), within the 16-line budget; deepest
+line (`"block_types": ["text", "tool_use", "tool_result"] }`) stays left of the
+window's right edge.
+"""
