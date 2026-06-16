@@ -15,7 +15,7 @@ For the last couple of months I've been writing a series that traces Claude Code
 
 So before the writing could happen, two small tools had to exist. [`ccs-sanitize`](https://github.com/frederick-douglas-pearce/claude-code-sessions/tree/main/tooling/sanitizer) scrubs a full transcript clean enough to publish. [`scan.py`](https://github.com/frederick-douglas-pearce/claude-code-sessions/blob/main/tooling/format-scan/scan.py) does something narrower: it reports the _shape_ of a session — which keys appear, which types, which block kinds, which Claude Code versions produced them — without emitting a single byte of the content inside.
 
-That second tool came from a specific, recurring challenge. The Claude Code session format changes constantly, and you'll often meet a change in the data before you find it written down anywhere — a new key here, a renamed field there, a whole new kind of trace file. If you're building anything that reads these files, drift like that can break you, silently. You need to watch the _structure_ of the data over time — but there is no need to read the entire contents of each file because they're full of things you can't safely look at and share. `scan.py` is the solution: it sees the structure and nothing else.
+That second tool came from a specific, recurring challenge. The Claude Code session format changes constantly, and you'll often meet a change in the data before you find it written down anywhere — a new key here, a renamed field there, a whole new kind of trace file. If you're building anything that reads these files, drift like that can break you, silently. You need to watch the _structure_ of the data over time — but you don't need to read the full contents to do it, and you shouldn't: they're full of things you can't safely look at or share. `scan.py` is the solution: it sees the structure and nothing else.
 
 Here's the part that matters for what comes next: those two tools were built so that _one person could share one person's sessions_, safely. And they work. Which raises an obvious question.
 
@@ -23,10 +23,10 @@ Here's the part that matters for what comes next: those two tools were built so 
 
 Almost everything worth knowing about how Claude Code behaves gets more interesting — and more trustworthy — drawn from many people's sessions instead of one. Everything I've published about Claude Code rests on my own private sample, and that's a ceiling only more contributors can lift.
 
-A public, safely-sanitized corpus of real sessions is the kind of shared resource a lot of useful things could build off of. A few I'd genuinely like to see exist:
+A public, safely-sanitized corpus of real sessions is the kind of foundation people can build tools and research on — instead of working from one person's session files. A few I'd genuinely like to see exist:
 
 - **Tooling that works on real sessions, not toy ones.** Session viewers, log explorers, token and cost dashboards, diff tools — everyone building them today tests against their own logs or hand-mocked data. A shared corpus is a common set of realistic fixtures, including the weird cases only someone else's sessions contain.
-- **A public record of how the format evolves.** Sanitized sessions across many Claude Code versions are, together, the documentation the format doesn't have — a way to see how the session schema actually changed, release over release. That's useful to anyone building on top of Claude Code, not just me.
+- **A public record of how the format evolves.** Sanitized sessions across many Claude Code versions are, together, the documentation the format doesn't always have — a way to see how the session schema actually changed, release over release. That's useful to anyone building on top of Claude Code, not just me.
 - **Honest, reproducible study of agentic coding.** How do people really drive these tools? Where do agents loop, stall, recover, or misuse a tool? Those questions deserve answers that someone _other_ than the author can check — which is only possible against data that's actually public.
 - **Better tools through aggregate analysis.** The error and retry patterns in one session are an anecdote; across hundreds they're a signal that tells tool authors which tool definitions are confusing the model. That's exactly the kind of finding that shouldn't rest on one person's data.
 - **A way in for people without a big private sample.** You shouldn't have to work somewhere with mountains of internal usage to do interesting session research. A shared corpus levels that — a student, an indie dev, and a curious contributor all start from the same place.
@@ -35,7 +35,7 @@ The tools to do this safely already exist. What's missing is the data — and th
 
 ## What CCDC is
 
-That's the Claude Code Data Collective: a small, curated, public corpus of sanitized Claude Code sessions, built on those same two tools, that anyone can contribute to and anyone can build on.
+That's the Claude Code Data Collective (CCDC): a small, curated, public corpus of sanitized Claude Code sessions, built on those same two tools, that anyone can contribute to and anyone can build on.
 
 There are two ways to contribute, depending on how cautious you want to be:
 
