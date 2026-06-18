@@ -122,6 +122,11 @@ field — see [LAYOUT.md](LAYOUT.md)). The boolean is the same; **what it affirm
 tier**, because the two tiers retain different things for different reasons. Set it `true` only
 if the tier-appropriate clause below holds.
 
+> **Heads-up:** Claude Code deletes raw sessions under `~/.claude/projects/` after
+> `cleanupPeriodDays` (**default 30 days**), so on default settings the originals this clause asks
+> you to keep can be garbage-collected out from under you. Raise that setting *before* your sessions
+> age out — see [CONTRIBUTING.md → Your retained originals](CONTRIBUTING.md#before-you-start).
+
 ### C1. Tier 1 — you retain a discrete, pinnable original
 By setting `original_retained = true` on a **Tier 1** (`corpus/`) contribution, you affirm you
 **retain your original, pre-sanitization input** — the one raw session file keyed by
