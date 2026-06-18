@@ -47,6 +47,27 @@ You need:
    ([ATTESTATION.md §C](ATTESTATION.md#c-you-retain-the-original)). Don't delete your raw
    sessions after contributing.
 
+> **⚠️ Claude Code deletes raw sessions by default — change this *before* yours age out.**
+> Claude Code's `cleanupPeriodDays` setting defaults to **30 days**: at startup it deletes any
+> session transcript under `~/.claude/projects/` whose file is older than that. Those are exactly
+> the raw originals this attestation asks you to keep, so on default settings a session you'd want
+> to contribute (or re-sanitize later) can be garbage-collected out from under you — silently, with
+> no prompt. Raise the retention window in your **user** settings (`~/.claude/settings.json`) so
+> originals survive:
+>
+> ```json
+> // ~/.claude/settings.json
+> { "cleanupPeriodDays": 36500 }
+> ```
+>
+> `36500` is ~100 years — effectively indefinite. The minimum is `1`; `0` is rejected. The setting
+> can also live in project (`.claude/settings.json`) or local (`.claude/settings.local.json`)
+> settings with the usual precedence (local > project > user), but for your own machine user
+> settings is the right scope. Do this **before** the sessions you care about cross the 30-day line.
+> See the [Claude Code settings docs](https://code.claude.com/docs/en/settings) for the full field
+> reference. *(Separately, `CLAUDE_CODE_SKIP_PROMPT_HISTORY` suppresses transcript writes entirely —
+> the opposite of what you want here; don't set it.)*
+
 **Ground rules, non-negotiable** (full security posture in [CLAUDE.md](CLAUDE.md) and
 [GOVERNANCE.md](GOVERNANCE.md#the-review-gate)):
 
