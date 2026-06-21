@@ -34,6 +34,11 @@ _incoming/
 # hook wiring, settings.local.json carries personal permissions/overrides).
 .claude/settings.local.json
 
+# Social drafts — pre-publication scratch, not tracked.
+# Scoped to drafts/ so curated/finalized social assets under social/ can be
+# tracked later if desired.
+social/drafts/
+
 # Local-only scratch
 *.local
 local/
