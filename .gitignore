@@ -37,3 +37,7 @@ _incoming/
 # Local-only scratch
 *.local
 local/
+
+# Unpublished social/comms drafts (reply drafts, post drafts). Local-only until
+# Fred edits + ships them; not part of the corpus or repo deliverables.
+social/drafts/
